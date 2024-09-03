@@ -1,0 +1,11 @@
+/.Rproj.user
+/.venv
+/data
+/plot-files
+/samples
+/tests
+__pycache__/
+Qualtrics.Rproj
+.*
+!.gitignore
+!.git/
