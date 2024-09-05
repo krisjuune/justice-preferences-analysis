@@ -105,52 +105,7 @@ for i in range(len(columns)):
         fig.update_layout(xaxis_title=col_x, yaxis_title=col_y)
         fig.show()
 
-
-
-
-
-
 #%% save lca data for running in R
 
 lpa_data = df_justice[['ID', 'utilitarian', 'egalitarian', 'sufficientarian', 'limitarian']]
 lpa_data.to_csv('data/lpa_data.csv', index=False)
-
-
-
-
-
-# %% set up R and Python connection for poLCA
-import rpy2.robjects as ro
-from rpy2.robjects.packages import importr
-from rpy2.robjects import pandas2ri
-
-
-# enable the automatic conversion between pandas DataFrame and R DataFrame
-pandas2ri.activate()
-
-# Define R code for installing packages
-r_code_install = """
-if (!requireNamespace("poLCA", quietly = TRUE)) {
-    install.packages("poLCA", dependencies = TRUE)
-}
-"""
-
-# execute R code to install packages
-ro.r(r_code_install)
-
-# load the poLCA package
-poLCA = importr('poLCA')
-
-#%% run simple LCA
-
-# transfer data to R
-r_df = pandas2ri.py2rpy(lca_data)
-
-# define the formula for LCA
-formula = 'cbind(utilitarian, egalitarian, sufficientarian, limitarian) ~ 1'
-# run LCA in R (e.g., 2-class model)
-lca_result = ro.r(f'poLCA({formula}, data=r_df, nclass=2, graphs=FALSE)')
-
-print(lca_result)
-
-# %%

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np 
 import plotly.express as px
 import matplotlib.pyplot as plt
-from functions.data-assist import apply_mapping, rename_columns
+from functions.data_assist import apply_mapping, rename_columns
 
 #%% reset working directory
 import os
@@ -20,6 +20,7 @@ df = pd.read_csv('data/conjoint.csv')
 pd.set_option('display.max_columns', None) # displays all columns when printing parts of the df
 columns = df.columns.tolist()
 df = df.drop([0, 1]) # remove first two rows
+
 
 
 # %% ############################# clean data ################################
@@ -48,38 +49,39 @@ df['duration_min'] = df['Duration (in seconds)'] / 60
 
 # filter out incompletes
 df = df[df['DistributionChannel'] != 'preview'] # filter out previews
-df = df[df['Finished'] == True] # filter out recorded incomplete responses
+df = df[df['Finished'] == True] # filter out recorded incompletes
 df = df.dropna(subset=['canton']) # filter out quota fulls
 
-# filter out speeders and very slow responses
+# speeders and laggards
 # calculate the 5% and 99% quantiles
 lower_threshold = df['duration_min'].quantile(0.05)
 upper_threshold = df['duration_min'].quantile(0.99)
+print(f"Lower threshold (lowest 5% quartile): {lower_threshold} minutes")
+print(f"Upper threshold (highest 1% quartile): {upper_threshold} minutes")
+df['speeder'] = df['duration_min'] < lower_threshold
+df['laggard'] = df['duration_min'] > upper_threshold 
 
-# print the thresholds
-print(f"Lower threshold (2.5% quartile): {lower_threshold} minutes")
-print(f"Upper threshold (97.5% quartile): {upper_threshold} minutes")
-below_lower_threshold = df[df['duration_min'] < lower_threshold].shape[0]
-above_upper_threshold = df[df['duration_min'] > upper_threshold].shape[0]
-print(f"Number of responses above the upper threshold: {above_upper_threshold}")
-print(f"Number of responses below the lower threshold: {below_lower_threshold}")
+# inattentives based on justice section (exact same answer for all questions)
+just_columns = ['justice-general_1', 'justice-tax_1', 'justice-subsidy_1', 
+           'justice-general_2', 'justice-tax_2', 'justice-subsidy_2', 
+           'justice-general_3', 'justice-tax_3', 'justice-subsidy_3', 
+           'justice-general_4', 'justice-tax_4', 'justice-subsidy_4'
+]
+attention_mask = (df[just_columns].nunique(axis=1) == 1)
+df['inattentive'] = attention_mask
 
-# filter out speeders (fastest 5%) and very slow respondants (slowest 1%)
-df = df[(df['duration_min'] >= lower_threshold) & (df['duration_min'] <= upper_threshold)]
+# count the number of rows where the attention filters are True
+print(f"Number of speeders (5% fastest): {df['speeder'].sum()}")
+print(f"Number of laggards (1% slowest): {df['laggard'].sum()}")
+print(f"Number of inattentive respondents: {df['inattentive'].sum()}")
 
-#TODO add columns for speeders and laggards with values 0 or 1 instead of filtering them out
+# filter out rows of speeders, laggards, or inattentives
+df_filtered = df[~((df['speeder'] == True) | 
+                   (df['laggard'] == True) |
+                   (df['inattentive'] == True)
+                  )]
 
-# fig = px.histogram(df, x='duration_min', nbins=60, title='Histogram of Duration (in minutes)')
-# fig.update_xaxes(title_text='Duration (minutes)')
-# fig.update_yaxes(title_text='Frequency')
-# fig.show()
-
-# fig = px.histogram(df_time, x='duration_min', nbins=60, title='Histogram of Duration (in minutes)')
-# fig.update_xaxes(title_text='Duration (minutes)')
-# fig.update_yaxes(title_text='Frequency')
-# fig.show()
-
-# remove empty columns 
+# remove non-functional empty columns 
 empty_columns = [col for col in df.columns if col.endswith('_Table')]
 df = df.drop(columns=empty_columns)
 
@@ -90,44 +92,72 @@ df = rename_columns(df, 'RooftopSolarPV', 'pv')
 df = rename_columns(df, 'Infrastructure', 'tradeoffs')
 df = rename_columns(df, 'Distribution', 'distribution')
 
-# %% ############################### recode ###################################
-# factorise categorical data 
 
-# recheck the scales used
-# likert_scale = df['justice-general_1'].unique() # check the list of unique values
-# rating_scale = df['1_heat-rating_1'].unique()
 
+# %% ########################## recode demographics ##############################
+
+# recode likert scales in conjoints
 numerical_values = [0, 1, 2, 3, 4, 5]
 binary_values = [0, 0, 0, 1, 1, 1]
-
-# # these are used in the justice section
-# likert_values = ['Stimme überhaupt nicht zu', 
-#                  'Stimme nicht zu', 
-#                  'Stimme eher nicht zu', 
-#                  'Stimme eher zu', 
-#                  'Stimme zu', 
-#                  'Stimme voll und ganz zu']
-# likert_scale = np.array(list(zip(likert_values, numerical_values)))
-
-# these are used to rate the conjoints
 rating_values = ['Stark dagegen',
                  'Dagegen',
                  'Eher dagegen',
                  'Eher dafür',
                  'Dafür',
                  'Stark dafür']
-rating_scale = np.array(list(zip(rating_values, numerical_values)))
-
-# create a dictionary to factorise values
+rating_scale = np.array(list(zip(rating_values, binary_values)))
 likert_dict = {**dict(rating_scale)}
-
 df = apply_mapping(df, likert_dict, column_pattern=['justice', 'rating'])
 
 #TODO recode demographic values
 
+# gender
+
+# age
+
+# language region
+
+# 
 
 
+# %% ################################# recode justice ##############################
 
+# recode likert scales
+likert_values = ['Stimme überhaupt nicht zu', 
+                 'Stimme nicht zu', 
+                 'Stimme eher nicht zu', 
+                 'Stimme eher zu', 
+                 'Stimme zu', 
+                 'Stimme voll und ganz zu']
+likert_scale = np.array(list(zip(likert_values, binary_values)))
+justice_dict = {**dict(likert_scale)}
+df_justice = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'])
+
+# justice columns dictionary
+justice_columns = {
+    'utilitarian': ['justice-general_1', 'justice-tax_1', 'justice-subsidy_1'], 
+    'egalitarian': ['justice-general_2', 'justice-tax_2', 'justice-subsidy_2'], 
+    'sufficientarian': ['justice-general_3', 'justice-tax_3', 'justice-subsidy_3'], 
+    'limitarian': ['justice-general_4', 'justice-tax_4', 'justice-subsidy_4']
+}
+
+# convert columns to numeric types
+for just_columns in justice_columns.values():
+    for col in just_columns:
+        df_justice[col] = pd.to_numeric(df[col], errors='coerce')
+
+# get mean for each key and append to dataframe
+for key, just_columns in justice_columns.items():
+    df[key] = df[just_columns].mean(axis=1)
+
+# # for binary scale values, append sum to df
+# for key, cjust_olumns in justice_columns.items():
+#     df_justice[key] = df_justice[just_columns].sum(axis=1)
+
+lpa_data = df_justice[['ID', 'utilitarian', 'egalitarian', 'sufficientarian', 'limitarian', 'speeder', 'laggard', 'inattentive']]
+lpa_data.to_csv('data/lpa_data.csv', index=False)
+
+# now run lpa analysis
 
 # %% ######################################### check sample #################################################
 

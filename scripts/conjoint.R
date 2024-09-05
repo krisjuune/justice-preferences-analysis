@@ -7,11 +7,8 @@ library(survey)
 library(dplyr)
 
 
-heat_choices <- read.csv("data/heat-choices.csv")
-heat_ratings <- read.csv("data/heat-ratings.csv")
-pv_choices <- read.csv("data/pv-choices.csv")
-
-pv_choices <- pv_choices %>% filter(!is.na(pv_choices$choice))
+df_heat <- read.csv("data/heat-conjoint.csv")
+df_pv <- read.csv("data/pv-conjoint.csv")
 
 # effects sizes for pv experiment are surprisingly small, on the order of
 # 0.03 compared to 0.1 to 0.2 in the heat experiment
@@ -20,8 +17,19 @@ pv_choices <- pv_choices %>% filter(!is.na(pv_choices$choice))
 #Marginal means = conditional averages for different category levels
 
 ########################### recode attribute levels #######################
-heat_choices <- heat_choices %>%
+df_heat <- df_heat %>%
   mutate(
+    # rating = factor(
+    #   case_when(
+    #     rating == "0" ~ 0,
+    #     rating == "1" ~ 0,
+    #     rating == "2" ~ 0,
+    #     rating == "3" ~ 1,
+    #     rating == "4" ~ 1,
+    #     rating == "5" ~ 1,
+    #     TRUE ~ NA_real_),
+    #   levels = 0:1
+    # ),
     year = factor(
       case_when(
         year == "2050" ~ 0,
@@ -98,8 +106,19 @@ heat_choices <- heat_choices %>%
     )
   )
 
-pv_choices <- pv_choices %>%
+df_pv <- df_pv %>%
   mutate(
+    # rating = factor(
+    #   case_when(
+    #     rating == "0" ~ 0,
+    #     rating == "1" ~ 0,
+    #     rating == "2" ~ 0,
+    #     rating == "3" ~ 1,
+    #     rating == "4" ~ 1,
+    #     rating == "5" ~ 1,
+    #     TRUE ~ NA_real_),
+    #   levels = 0:1
+    # ),
     mix = factor(
       case_when(
         mix == "More hydro" ~ 0,
@@ -173,34 +192,15 @@ pv_choices <- pv_choices %>%
     )
   )
 
-# heat_choices <- heat_choices %>%
-#   mutate(
-#     year = as.factor(year),
-#     tax = as.factor(tax),
-#     ban = as.factor(ban),
-#     heatpump = as.factor(heatpump),
-#     energyclass = as.factor(energyclass),
-#     exemption = as.factor(exemption)
-#   )
-# 
-# pv_choices <- pv_choices %>%
-#   mutate(
-#     TargetMix = as.factor(mix),
-#     Imports = as.factor(imports),
-#     RooftopSolarPV = as.factor(pv),
-#     Infrastructure = as.factor(tradeoffs),
-#     Distribution = as.factor(distribution)
-#   )
-
 # testing the cregg package
 heat_amce_choice <- amce(
-  heat_choices,
+  df_heat,
   Y ~ year + tax + ban + heatpump + energyclass + exemption,
   id = ~ID
 )
 
 pv_amce_choice <- amce(
-  pv_choices,
+  df_pv,
   Y ~ mix + imports + pv + tradeoffs + distribution,
   id = ~ID
 )
@@ -208,27 +208,25 @@ pv_amce_choice <- amce(
 plot(heat_amce_choice)
 plot(pv_amce_choice)
 
-#TODO rating test
-heat_ratings <- heat_ratings %>%
-  mutate(rating = factor(
-    case_when(
-              rating == "0" ~ 0,
-              rating == "1" ~ 0,
-              rating == "2" ~ 0,
-              rating == "3" ~ 1,
-              rating == "4" ~ 1,
-              rating == "5" ~ 1,
-              TRUE ~ NA_real_)
-  )
-  )
-
+# the rating data has the missing data problem that was true 
+# for the choices before, there some kind of error with 
+# stacking in prep data, looks like the right rating isn't
+# matched with the right choice
+# the AMCEs look like the pv choice used to look like
 heat_amce_rating <- amce(
-  heat_ratings,
-  ratings ~ year + tax + ban + heatpump + energyclass + exemption,
+  df_heat,
+  rating ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID
+)
+
+pv_amce_rating <- amce(
+  df_pv,
+  rating ~ mix + imports + pv + tradeoffs + distribution,
   id = ~ID
 )
 
 plot(heat_amce_rating)
+plot(pv_amce_rating)
 
 #################################### IRR ####################################
 

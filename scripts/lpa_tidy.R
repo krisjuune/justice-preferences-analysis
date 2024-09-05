@@ -100,3 +100,6 @@ plot2 <- ggplot(mean_values_long, aes(x = variable, y = value, color = factor(ju
   theme_minimal()
 
 plot1 + plot2 + plot_layout(ncol = 2)
+
+
+############################ demographics ################################

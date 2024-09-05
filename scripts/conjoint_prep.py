@@ -1,7 +1,8 @@
 import pandas as pd
 from functions.conjoint_assist import prep_conjoint
-from functions.data-assist import apply_mapping, rename_columns
+from functions.data_assist import apply_mapping, rename_columns
 
+# run this after LPA 
 
 # %% ################################## translate conjoints #######################################
 
@@ -155,8 +156,8 @@ df = apply_mapping(df, conjoint_dict, column_pattern='table')
 
 # %% ############################# add lpa data #######################################
 
-lpa_cont = pd.read_csv('data/lpa_data_cont.csv')
-lpa_bin = pd.read_csv('data/lpa_data.csv')
+lpa_cont = pd.read_csv('data/lpa_data.csv')
+lpa_bin = pd.read_csv('data/lpa_data_bi.csv')
 
 just_str = ['utilitarian', 'egalitarian', 'sufficientarian', 'limitarian', 'class']
 
@@ -190,18 +191,21 @@ df = df.merge(
 
 # %% ############################ conjoint data #######################################
 
-# TODO this should be done after getting classes from LPA and then including 'class' in respondets
 # select respondent data
 respondents = df[[
         "ID", "duration_min", "language", "gender", "age", "region", "canton", "citizen", 
         "education", "urbanness", "renting", "income", "household-size", "party", 
-        "satisfaction_1", "justice_class_bin", "justice_class_cont"]] # missing trust, literacy, speeders, and laggards, and inattentives
+        "satisfaction_1", "justice_class_bin", "justice_class_cont", "speeder",
+        "laggard", "inattentive"
+        ]] # missing trust, literacy, speeders, and laggards, and inattentives
 
 heat_regex = 'pv|mix|imports|tradeoffs|distribution'
 heat_filemarker = 'heat'
 pv_regex = 'heat|year|tax|ban|energyclass|exemption'
 pv_filemarker = 'pv'
 
-prep_conjoint(df, respondent_columns=respondents, regex_list=heat_regex, filemarker=heat_filemarker) #1068 participants in heat
-prep_conjoint(df, respondent_columns=respondents, regex_list=pv_regex, filemarker=pv_filemarker) #1062 participants in pv
+df_heat = prep_conjoint(df, respondent_columns=respondents, regex_list=heat_regex, filemarker=heat_filemarker) #1068 participants in heat
+df_pv = prep_conjoint(df, respondent_columns=respondents, regex_list=pv_regex, filemarker=pv_filemarker) #1062 participants in pv
 
+
+# %%
