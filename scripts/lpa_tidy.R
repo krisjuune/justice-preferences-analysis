@@ -5,7 +5,16 @@ library(dplyr)
 library(ggplot2)
 library(patchwork)
 
-lpa_data <- read.csv("data/lpa_data.csv")
+lpa_raw <- read.csv("data/lpa_input.csv")
+lpa_raw <- lpa_raw %>%
+  mutate(
+    speeder = as.logical(speeder),
+    laggard = as.logical(laggard),
+    inattentive = as.logical(inattentive)
+  )
+lpa_data <- lpa_raw %>%
+  filter(!speeder & !laggard & !inattentive) %>%
+  drop_na() # 5 missing for respondents that dropped out during or before the justice section
 
 # LPA with mclust
 lpa_columns <- lpa_data[, c('utilitarian', 'egalitarian', 'sufficientarian', 'limitarian')]
@@ -37,15 +46,17 @@ plot_profiles(lpa_model_tidy)
 # add the profile assignments to your original dataframe
 model_data <- get_data(lpa_model_tidy) # get the data with class assignments
 profile_assignments <- model_data$Class # extract the class assignments
-lpa_data$justice_class <- profile_assignments
+lpa_data <- lpa_data %>%
+  mutate(justice_class = profile_assignments)
+lpa_class <- lpa_raw %>%
+  left_join(lpa_data %>% select(ID, justice_class), by = "ID")
 
 counts <- table(lpa_data$justice_class)
-# class 3: egalitarian (and sufficientarian and limitarian) -- 1029
-# class 2: universal (scores for all around 2) -- 584
-# class 1: utilitarian (and minimally sufficientarian and limitarian) -- 406
+# class 3: egalitarian (and sufficientarian and limitarian) -- 1032 (bi 1029)
+# class 2: universal (scores for all around 2) -- 788 (bi 584)
+# class 1: utilitarian (and minimally sufficientarian and limitarian) -- 196 (bi 406)
 
-#TODO add to data prep or something like that to be able to analyse together with other stuff
-write.csv(lpa_data, "data/lpa_data.csv", row.names = FALSE)
+write.csv(lpa_class, "data/lpa_data.csv", row.names = TRUE)
 
 ########################## test plots ################################
 plot1 <- ggplot(lpa_data, aes(x = factor(justice_class), fill = factor(justice_class))) +

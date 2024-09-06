@@ -157,34 +157,35 @@ df = apply_mapping(df, conjoint_dict, column_pattern='table')
 # %% ############################# add lpa data #######################################
 
 lpa_cont = pd.read_csv('data/lpa_data.csv')
-lpa_bin = pd.read_csv('data/lpa_data_bi.csv')
+# lpa_bin = pd.read_csv('data/lpa_data_bi.csv')
 
 just_str = ['utilitarian', 'egalitarian', 'sufficientarian', 'limitarian', 'class']
 
-for original_str in just_str:
-    cont_str = f'{original_str}_cont' 
-    bin_str = f'{original_str}_bin' 
-    lpa_cont = rename_columns(lpa_cont, original_str, cont_str)
-    lpa_bin = rename_columns(lpa_bin, original_str, bin_str)
+# for original_str in just_str:
+#     cont_str = f'{original_str}_cont' 
+#     bin_str = f'{original_str}_bin' 
+#     lpa_cont = rename_columns(lpa_cont, original_str, cont_str)
+    # lpa_bin = rename_columns(lpa_bin, original_str, bin_str)
 
-df = df.merge(
-    lpa_bin[['ID', 
-             'utilitarian_bin', 
-             'egalitarian_bin', 
-             'sufficientarian_bin', 
-             'limitarian_bin', 
-             'justice_class_bin']],
-    on='ID',
-    how='left'
-)
+# df = df.merge(
+#     lpa_bin[['ID', 
+#              'utilitarian_bin', 
+#              'egalitarian_bin', 
+#              'sufficientarian_bin', 
+#              'limitarian_bin', 
+#              'justice_class_bin']],
+#     on='ID',
+#     how='left'
+# )
 
+# add _cont below to columns names if uncommenting the code above for bin values too
 df = df.merge(
     lpa_cont[['ID', 
-              'utilitarian_cont', 
-              'egalitarian_cont', 
-              'sufficientarian_cont', 
-              'limitarian_cont', 
-              'justice_class_cont']],
+              'utilitarian', 
+              'egalitarian', 
+              'sufficientarian', 
+              'limitarian', 
+              'justice_class']],
     on='ID',
     how='left'
 )
@@ -193,11 +194,10 @@ df = df.merge(
 
 # select respondent data
 respondents = df[[
-        "ID", "duration_min", "language", "gender", "age", "region", "canton", "citizen", 
+        "ID", "duration_min", "gender", "age", "region", "canton", "citizen", 
         "education", "urbanness", "renting", "income", "household-size", "party", 
-        "satisfaction_1", "justice_class_bin", "justice_class_cont", "speeder",
-        "laggard", "inattentive"
-        ]] # missing trust, literacy, speeders, and laggards, and inattentives
+        "satisfaction_1", "justice_class", "speeder", "laggard", "inattentive"
+        ]] # missing trust, literacy
 
 heat_regex = 'pv|mix|imports|tradeoffs|distribution'
 heat_filemarker = 'heat'

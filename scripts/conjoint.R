@@ -5,10 +5,30 @@ library(cregg)
 library(marginaleffects)
 library(survey)
 library(dplyr)
+library(broom.helpers)
+library(parameters)
 
 
 df_heat <- read.csv("data/heat-conjoint.csv")
 df_pv <- read.csv("data/pv-conjoint.csv")
+
+# turn below into a function
+df_heat <- df_heat %>%
+  mutate(
+    speeder = as.logical(speeder),
+    laggard = as.logical(laggard),
+    inattentive = as.logical(inattentive)
+  ) %>%
+  filter(!speeder & !laggard & !inattentive)
+
+df_pv <- df_pv %>%
+  mutate(
+    speeder = as.logical(speeder),
+    laggard = as.logical(laggard),
+    inattentive = as.logical(inattentive)
+  ) %>%
+  filter(!speeder & !laggard & !inattentive)
+
 
 # effects sizes for pv experiment are surprisingly small, on the order of
 # 0.03 compared to 0.1 to 0.2 in the heat experiment
@@ -208,10 +228,6 @@ pv_amce_choice <- amce(
 plot(heat_amce_choice)
 plot(pv_amce_choice)
 
-# the rating data has the missing data problem that was true 
-# for the choices before, there some kind of error with 
-# stacking in prep data, looks like the right rating isn't
-# matched with the right choice
 # the AMCEs look like the pv choice used to look like
 heat_amce_rating <- amce(
   df_heat,
@@ -228,22 +244,19 @@ pv_amce_rating <- amce(
 plot(heat_amce_rating)
 plot(pv_amce_rating)
 
-#################################### IRR ####################################
-
-
-
 ############################## marginal means ###############################
+# write function that does this
 lin_model_pv <- lm(
   Y ~ mix + imports + pv + tradeoffs + distribution,
-  data = pv_choices
+  data = df_pv
 )
 
 tidy(lin_model_pv)
 
 svydesign_pv <- svydesign(
-  ids = pv_choices$ID,
+  ids = df_pv$ID,
   weights = 1,
-  data = pv_choices
+  data = df_pv
 )
 
 model_pv <- svyglm(
@@ -251,8 +264,26 @@ model_pv <- svyglm(
   design = svydesign_pv
 )
 
+#TODO think about weights
 mfx_pv <- model_pv %>%
-  avg_slopes(newdata = "mean")
+  avg_slopes(newdata = "mean") 
+
+#TODO save output to file, so that plots can be made in Python in the end
+
+
+plot_data_manual <- model_pv %>%
+  tidy_and_attach() %>%
+  tidy_add_reference_rows() %>%
+  tidy_add_estimate_to_reference_rows() %>%
+  filter(term != "(Intercept)")
+
+ggplot(
+  plot_data_manual,
+  aes(x = estimate, y = term)
+) +
+  geom_vline(xintercept = 0) +
+  geom_pointrange(aes(xmin = conf.low, xmax = conf.high))
+
 
 plot_data_manual <- model_pv %>%
   tidy_and_attach() %>%
@@ -278,3 +309,9 @@ ggplot(
   ) +
   # Automatically resize each facet height with ggforce::facet_col()
   facet_col(facets = "variable_nice", scales = "free_y", space = "free")
+
+#################################### IRR ####################################
+# run this in Python after this script, so save everything to file
+
+write.csv(heat_amce_choice, "data/heat-amce.csv", row.names = TRUE)
+write.csv(pv_amce_choice, "data/pv-amce.csv", row.names = TRUE)

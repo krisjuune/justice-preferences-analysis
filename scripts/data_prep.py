@@ -46,6 +46,7 @@ for col in columns_to_num:
 # add column for IDs and duration in min
 df['ID'] = range(1, len(df) + 1)
 df['duration_min'] = df['Duration (in seconds)'] / 60
+df['duration_min'].round(3) # do I need to store it in df['dur...'] as well?
 
 # filter out incompletes
 df = df[df['DistributionChannel'] != 'preview'] # filter out previews
@@ -122,14 +123,14 @@ df = apply_mapping(df, likert_dict, column_pattern=['justice', 'rating'])
 
 # %% ################################# recode justice ##############################
 
-# recode likert scales
+# recode justice likert scales
 likert_values = ['Stimme überhaupt nicht zu', 
                  'Stimme nicht zu', 
                  'Stimme eher nicht zu', 
                  'Stimme eher zu', 
                  'Stimme zu', 
                  'Stimme voll und ganz zu']
-likert_scale = np.array(list(zip(likert_values, binary_values)))
+likert_scale = np.array(list(zip(likert_values, numerical_values)))
 justice_dict = {**dict(likert_scale)}
 df_justice = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'])
 
@@ -148,14 +149,21 @@ for just_columns in justice_columns.values():
 
 # get mean for each key and append to dataframe
 for key, just_columns in justice_columns.items():
-    df[key] = df[just_columns].mean(axis=1)
+    df[key] = df[just_columns].mean(axis=1).round(3)
 
 # # for binary scale values, append sum to df
 # for key, cjust_olumns in justice_columns.items():
 #     df_justice[key] = df_justice[just_columns].sum(axis=1)
 
-lpa_data = df_justice[['ID', 'utilitarian', 'egalitarian', 'sufficientarian', 'limitarian', 'speeder', 'laggard', 'inattentive']]
-lpa_data.to_csv('data/lpa_data.csv', index=False)
+lpa_data = df_justice[['ID', 
+                       'utilitarian', 
+                       'egalitarian', 
+                       'sufficientarian', 
+                       'limitarian', 
+                       'speeder', 
+                       'laggard', 
+                       'inattentive']]
+lpa_data.to_csv('data/lpa_input.csv', index=False)
 
 # now run lpa analysis
 
