@@ -7,211 +7,30 @@ library(survey)
 library(dplyr)
 library(broom.helpers)
 library(parameters)
+source("functions/r-assist.R")
 
 
 df_heat <- read.csv("data/heat-conjoint.csv")
 df_pv <- read.csv("data/pv-conjoint.csv")
 
-# turn below into a function
-df_heat <- df_heat %>%
-  mutate(
-    speeder = as.logical(speeder),
-    laggard = as.logical(laggard),
-    inattentive = as.logical(inattentive)
-  ) %>%
-  filter(!speeder & !laggard & !inattentive)
-
-df_pv <- df_pv %>%
-  mutate(
-    speeder = as.logical(speeder),
-    laggard = as.logical(laggard),
-    inattentive = as.logical(inattentive)
-  ) %>%
-  filter(!speeder & !laggard & !inattentive)
-
-
-# effects sizes for pv experiment are surprisingly small, on the order of
-# 0.03 compared to 0.1 to 0.2 in the heat experiment
-
 #AMCE = regression coefficients where there’s an omitted reference category
 #Marginal means = conditional averages for different category levels
 
-########################### recode attribute levels #######################
-df_heat <- df_heat %>%
-  mutate(
-    # rating = factor(
-    #   case_when(
-    #     rating == "0" ~ 0,
-    #     rating == "1" ~ 0,
-    #     rating == "2" ~ 0,
-    #     rating == "3" ~ 1,
-    #     rating == "4" ~ 1,
-    #     rating == "5" ~ 1,
-    #     TRUE ~ NA_real_),
-    #   levels = 0:1
-    # ),
-    year = factor(
-      case_when(
-        year == "2050" ~ 0,
-        year == "2045" ~ 1,
-        year == "2040" ~ 2,
-        year == "2035" ~ 3,
-        year == "2030" ~ 4,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:4,
-      labels = c("2050", "2045", "2040", "2035", "2030")
-    ),
-    tax = factor(
-      case_when(
-        tax == "0%" ~ 0,
-        tax == "25%" ~ 1,
-        tax == "50%" ~ 2,
-        tax == "75%" ~ 3,
-        tax == "100%" ~ 4,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:4,
-      labels = c("0%", "25%", "50%", "75%", "100%")
-    ),
-    ban = factor(
-      case_when(
-        ban == "No ban" ~ 0,
-        ban == "Ban on new installations" ~ 1,
-        ban == "Ban and fossil heating replacement" ~ 2,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:2,
-      labels = c("No ban",
-                 "Ban new installations",
-                 "Ban and replace fossil heating")
-    ),
-    heatpump = factor(
-      case_when(
-        heatpump == "Subsidy" ~ 0,
-        heatpump == "Governmental lease" ~ 1,
-        heatpump == "Subscription" ~ 2,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:2,
-      labels = c("Subsidized heat pump",
-                 "Leased heat pump",
-                 "Heat pump subscription")
-    ),
-    energyclass = factor(
-      case_when(
-        energyclass == "New buildings must be energy efficient" ~ 0,
-        energyclass == "New buildings must be energy efficient and produce renewable electricity on-site" ~ 1, # nolint: line_length_linter.
-        energyclass == "All buildings need to be energy efficient" ~ 2,
-        energyclass == "All buildings need to be energy efficient and produce renewable electricity on-site" ~ 3, # nolint: line_length_linter.
-        TRUE ~ NA_real_
-      ),
-      levels = 0:3,
-      labels = c("New buildings efficient",
-                 "New buildings efficient and renewable",
-                 "All buildings efficient",
-                 "All buildings efficient and renewable")
-    ),
-    exemption = factor(
-      case_when(
-        exemption == "No exemptions" ~ 0,
-        exemption == "Low-income households are exempted" ~ 1,
-        exemption == "Low and middle-income households are exempted" ~ 2,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:2,
-      labels = c("No exemptions",
-                 "Low-income exempted",
-                 "Low- and middle-income exempted")
-    )
-  )
+# set default theme and font stuff
+theme_set(theme_nice())
+update_geom_defaults("text", list(family = "Jost-Regular", fontface = "plain"))
+update_geom_defaults("label", list(family = "Jost-Regular", fontface = "plain"))
 
-df_pv <- df_pv %>%
-  mutate(
-    # rating = factor(
-    #   case_when(
-    #     rating == "0" ~ 0,
-    #     rating == "1" ~ 0,
-    #     rating == "2" ~ 0,
-    #     rating == "3" ~ 1,
-    #     rating == "4" ~ 1,
-    #     rating == "5" ~ 1,
-    #     TRUE ~ NA_real_),
-    #   levels = 0:1
-    # ),
-    mix = factor(
-      case_when(
-        mix == "More hydro" ~ 0,
-        mix == "More solar" ~ 1,
-        mix == "More wind" ~ 2,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:2,
-      labels = c("More hydro", "More solar", "More wind")
-    ),
-    imports = factor(
-      case_when(
-        imports == "0%" ~ 0,
-        imports == "10%" ~ 1,
-        imports == "20%" ~ 2,
-        imports == "30%" ~ 3,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:3,
-      labels = c("0%", "10%", "20%", "30%")
-    ),
-    pv = factor(
-      case_when(
-        pv == "No obligation" ~ 0,
-        pv == "New public and commercial buildings" ~ 1,
-        pv == "New and existing public and commercial buildings" ~ 2,
-        pv == "All new buildings" ~ 3,
-        pv == "All new and existing buildings" ~ 4,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:4,
-      labels = c("No rooftop PV obligation",
-                 "New non-residential buildings",
-                 "New and existing non-residential buildings",
-                 "All new buildings",
-                 "All new and existing buildings")
-    ),
-    tradeoffs = factor(
-      case_when(
-        tradeoffs == "No trade-offs" ~ 0,
-        tradeoffs == "Alpine regions" ~ 1,
-        tradeoffs == "Agricultural areas" ~ 2,
-        tradeoffs == "Forests" ~ 3,
-        tradeoffs == "Rivers" ~ 4,
-        tradeoffs == "Lakes" ~ 5,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:5,
-      labels = c("No biodiversity trade-offs",
-                 "Alpine regions",
-                 "Agricultural regions",
-                 "Forests",
-                 "Rivers",
-                 "Lakes")
-    ),
-    distribution = factor(
-      case_when(
-        distribution == "No agreed distribution" ~ 0,
-        distribution == "Potential-based" ~ 1,
-        distribution == "Equal per person" ~ 2,
-        distribution == "Minimum limit" ~ 3,
-        distribution == "Maximum limit" ~ 4,
-        TRUE ~ NA_real_
-      ),
-      levels = 0:4,
-      labels = c("No agreed cantonal production requirements",
-                 "Maximum production potential",
-                 "Equal per person",
-                 "Minimum limit",
-                 "Maximum limit")
-    )
-  )
+# remove speeders, laggards, and inattentives
+df_heat <- filter_respondents(df_heat)
+df_pv <- filter_respondents(df_pv)
 
+# factorise conjoints and variables for subgroup analysis
+df_heat <- factor_conjoints(df_heat, experiment = "heat")
+df_pv <- factor_conjoints(df_pv, experiment = "pv")
+
+
+############################## AMCE ##################################
 # testing the cregg package
 heat_amce_choice <- amce(
   df_heat,
@@ -285,30 +104,74 @@ ggplot(
   geom_pointrange(aes(xmin = conf.low, xmax = conf.high))
 
 
-plot_data_manual <- model_pv %>%
-  tidy_and_attach() %>%
-  tidy_add_reference_rows() %>%
-  tidy_add_estimate_to_reference_rows() %>%
-  filter(term != "(Intercept)") %>%
-  mutate(term_nice = str_remove(term, variable)) %>%
-  left_join(variable_lookup, by = join_by(variable)) %>% # make variable lookup
-  mutate(across(c(term_nice, variable_nice), ~fct_inorder(.))) # make lookup
+# plot_data_manual <- model_pv %>%
+#   tidy_and_attach() %>%
+#   tidy_add_reference_rows() %>%
+#   tidy_add_estimate_to_reference_rows() %>%
+#   filter(term != "(Intercept)") %>%
+#   mutate(term_nice = str_remove(term, variable)) %>%
+#   left_join(variable_lookup, by = join_by(variable)) %>% # make variable lookup
+#   mutate(across(c(term_nice, variable_nice), ~fct_inorder(.))) # make lookup
+# 
+# ggplot(
+#   plot_data_manual,
+#   aes(x = estimate, y = term_nice, color = variable_nice)
+# ) +
+#   geom_vline(xintercept = 0) +
+#   geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
+#   scale_x_continuous(labels = label_pp) +
+#   guides(color = "none") +
+#   labs(
+#     x = "Percentage point change in probability of candidate selection",
+#     y = NULL,
+#     title = "AMCEs plotted with tidy_add_reference_rows()"
+#   ) +
+#   # Automatically resize each facet height with ggforce::facet_col()
+#   facet_col(facets = "variable_nice", scales = "free_y", space = "free")
 
-ggplot(
-  plot_data_manual,
-  aes(x = estimate, y = term_nice, color = variable_nice)
-) +
-  geom_vline(xintercept = 0) +
-  geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
-  scale_x_continuous(labels = label_pp) +
-  guides(color = "none") +
-  labs(
-    x = "Percentage point change in probability of candidate selection",
-    y = NULL,
-    title = "AMCEs plotted with tidy_add_reference_rows()"
-  ) +
-  # Automatically resize each facet height with ggforce::facet_col()
-  facet_col(facets = "variable_nice", scales = "free_y", space = "free")
+response_var_pv <- "Y"
+predictors_pv <- c("mix", "imports", "pv", "tradeoffs", "distribution")
+results_pv <- marginal_means(df_pv, response_var_pv, predictors_pv, output_file = "data/pv_MMs.csv")
+
+response_var_heat <- "Y"
+predictors_heat <- c("year", "tax", "ban", "heatpump", "energyclass", "exemption")
+results_heat <- marginal_means(df_heat, response_var_heat, predictors_heat, output_file = "data/heat_MMs.csv")
+
+############################### subgroup MMs ################################
+
+#Choice outcome
+mm_justice_heat <- cj(
+  df_heat,
+  Y ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID,
+  estimate = "mm",
+  by = ~justice_class
+)
+
+mm_justice_heat
+
+#plot
+plot(mm_justice_heat, group = "justice_class", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
+#Choice outcome
+mm_justice_pv <- cj(
+  df_pv,
+  Y ~ mix + imports + pv + tradeoffs + distribution,
+  id = ~ID,
+  estimate = "mm",
+  by = ~justice_class
+)
+
+mm_justice_heat
+
+#plot
+plot(mm_justice_pv, group = "justice_class", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
 
 #################################### IRR ####################################
 # run this in Python after this script, so save everything to file
