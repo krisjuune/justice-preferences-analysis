@@ -100,6 +100,7 @@ df = rename_columns(df, 'Distribution', 'distribution')
 # recode likert scales in conjoints
 numerical_values = [0, 1, 2, 3, 4, 5]
 binary_values = [0, 0, 0, 1, 1, 1]
+numerical_values_neg = [-3, -2, -1, 1, 2, 3]
 rating_values = ['Stark dagegen',
                  'Dagegen',
                  'Eher dagegen',
@@ -110,15 +111,71 @@ rating_scale = np.array(list(zip(rating_values, binary_values)))
 likert_dict = {**dict(rating_scale)}
 df = apply_mapping(df, likert_dict, column_pattern=['justice', 'rating'])
 
-#TODO recode demographic values
+# recode demographic values
 
-# gender
+demographics_dict = {
+    # gender
+    "Weiblich": "female",
+    "Männlich": "male", 
+    "Nicht-binär": "non-binary",
 
-# age
+    # age
+    "18-39 Jahre": "18-39", 
+    "40-64 Jahre": "40-64", 
+    "65-79 Jahre": "65-79", 
+    "80 Jahre oder älter": "80+",
 
-# language region
+    # language region
+    "Deutschsprachige Schweiz": "german", 
+    "Französischsprachige Schweiz": "french", 
+    "Italienischsprachige Schweiz": "italian",
+    "Rätoromanische Schweiz": "romansh",
 
-# 
+    # income
+    "Unter CHF 70,000": "low", 
+    "CHF 70,000 – CHF 100,000": "mid",
+    "CHF 100,001 – CHF 150,000": "mid",
+    "CHF 150,001 – CHF 250,000": "high", 
+    "Über 250,000": "high",
+    "Möchte ich nicht sagen": np.nan, 
+    
+    # education 
+
+    # citizen 
+    "Ja": True, 
+    "Nein": False, 
+
+    # tenant
+    "Mieter:in": True, 
+    "Besitzer:in": False,
+
+    #TODO check mapping of pol parties and income
+    #TODO add missing variables
+    # urbanness
+
+    # political orientation
+    "Grüne Partei der Schweiz (GPS)": "left", 
+    "Sozialdemokratische Partei der Schweiz (SP)": "left", 
+    "Grünliberale Partei (GLP)": "liberal", 
+    "Die Mitte (ehemals CVP/BDP)": "liberal", 
+    "Die Liberalen (FDP)": "liberal", 
+    "Schweizerische Volkspartei (SVP)": "conservative", 
+    "Andere": np.nan, 
+    "Keine": np.nan, 
+    "Möchte ich nicht sagen": np.nan
+
+    # energy literacy
+}
+
+# apply mapping to columns whose names contain 'table'
+df = apply_mapping(df, demographics_dict)
+
+# household size ?
+# satisfaction?
+
+# political trust
+df = df.copy() # reduce fragmentation
+df['trust'] = pd.concat([df['trust_1'], df['trust_2'], df['trust_3']], axis=1).mean(axis=1).round(3)
 
 
 # %% ################################# recode justice ##############################
@@ -130,7 +187,7 @@ likert_values = ['Stimme überhaupt nicht zu',
                  'Stimme eher zu', 
                  'Stimme zu', 
                  'Stimme voll und ganz zu']
-likert_scale = np.array(list(zip(likert_values, numerical_values)))
+likert_scale = np.array(list(zip(likert_values, numerical_values_neg)))
 justice_dict = {**dict(likert_scale)}
 df_justice = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'])
 
@@ -149,12 +206,13 @@ for just_columns in justice_columns.values():
 
 # get mean for each key and append to dataframe
 for key, just_columns in justice_columns.items():
-    df[key] = df[just_columns].mean(axis=1).round(3)
+    df[key] = df[just_columns].sum(axis=1).round(3)
 
 # # for binary scale values, append sum to df
 # for key, cjust_olumns in justice_columns.items():
 #     df_justice[key] = df_justice[just_columns].sum(axis=1)
 
+#TODO check if the principles were already added to df before
 lpa_data = df_justice[['ID', 
                        'utilitarian', 
                        'egalitarian', 

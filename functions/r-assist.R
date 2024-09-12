@@ -40,30 +40,124 @@ filter_respondents <- function(df,
 theme_nice <- function() {
   theme_minimal(base_family = "Jost-Regular") +
     theme(panel.grid.minor = element_blank(),
-          plot.title = element_text(family = "Jost-Bold", face = "bold", hjust = 0.5),
+          plot.title = element_text(family = "Jost-Bold",
+                                    face = "bold",
+                                    hjust = 0.5),
           axis.title = element_text(family = "Jost-Medium"),
           axis.title.x = element_text(hjust = 0.5),
           axis.title.y = element_text(hjust = 1),
-          axis.text.x = element_text(size = 10),  # Set size for x-axis variable names
-          axis.text.y = element_text(size = 10),  # Set size for y-axis variable names
+          axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
           strip.text = element_text(family = "Jost-Bold", face = "bold",
                                     size = rel(0.75), hjust = 0),
           strip.background = element_rect(fill = "grey90", color = NA))
 }
 
 factor_conjoint <- function(df, experiment) {
-  if (experiment == "heat") {
+  ### check and factorise justice_class
+  if ("justice_class" %in% colnames(df)) {
     df <- df %>%
       mutate(
         justice_class = factor(
           case_when(
             justice_class == "1" ~ 0,
             justice_class == "2" ~ 1,
-            justice_class == "3" ~ 2,
-            TRUE ~ NA_real_),
-          levels = 0:2, 
+            justice_class == "3" ~ 2#,
+            # TRUE ~ NA_real_
+            ),
+          levels = 0:2,
           labels = c("egalitarian", "utilitarian", "universal")
-        ),
+        )
+      )
+  }
+  
+  ### check and factorise other demographic columns
+  if ("gender" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        gender = factor(
+          case_when(
+            gender == "female" ~ 0,
+            gender == "male" ~ 1,
+            gender == "non-binary" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("female", "male", "non-binary")
+        )
+      )
+  }
+
+  if ("age" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        age = factor(
+          case_when(
+            age == "18-39" ~ 0,
+            age == "40-64" ~ 1,
+            age == "65-79" ~ 2,
+            age == "80+" ~ 3,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:3,
+          labels = c("18-39", "40-64", "65-79", "80+")
+        )
+      )
+  }
+
+  if ("region" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        region = factor(
+          case_when(
+            region == "german" ~ 0,
+            region == "french" ~ 1,
+            region == "italian" ~ 2,
+            region == "romansh" ~ 3,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:3,
+          labels = c("german", "french", "italian", "romansh")
+        )
+      )
+  }
+  
+  if ("income" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        income = factor(
+          case_when(
+            income == "low" ~ 0,
+            income == "mid" ~ 1,
+            income == "high" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("low", "mid", "high")
+        )
+      )
+  }
+
+  if ("party" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        party = factor(
+          case_when(
+            party == "left" ~ 0,
+            party == "liberal" ~ 1,
+            party == "conservative" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("left", "liberal", "conservative")
+        )
+      )
+  }
+
+  ### Factorise conjoints
+  if (experiment == "heat") {
+    df <- df %>%
+      mutate(
         year = factor(
           case_when(
             year == "2050" ~ 0,

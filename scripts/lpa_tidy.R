@@ -1,9 +1,11 @@
 library(mclust)
 library(tidyLPA)
+library(nnet)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(patchwork)
+source("functions/r-assist.R")
 
 lpa_raw <- read.csv("data/lpa_input.csv")
 lpa_raw <- lpa_raw %>%
@@ -13,7 +15,7 @@ lpa_raw <- lpa_raw %>%
     inattentive = as.logical(inattentive)
   )
 lpa_data <- lpa_raw %>%
-  filter(!speeder & !laggard & !inattentive) %>%
+  filter_respondents() %>%
   drop_na() # 5 missing for respondents that dropped out during or before the justice section
 
 # LPA with mclust
@@ -89,15 +91,15 @@ mean_values_long <- mean_values_long %>%
     ymax = value + 0.95
   )
 
-# Step 3: Plot data per latent profile
-ggplot(mean_values_long, aes(x = factor(justice_class), y = value, color = variable, group = variable)) +
-  geom_line(size = 1.5) +
-  geom_point(size = 3) +
-  labs(title = "Profiles Across Latent Classes",
-       x = "Latent Profile",
-       y = "Mean Score",
-       color = "Variable") +
-  theme_minimal()
+# # Step 3: Plot data per latent profile
+# ggplot(mean_values_long, aes(x = factor(justice_class), y = value, color = variable, group = variable)) +
+#   geom_line(size = 1.5) +
+#   geom_point(size = 3) +
+#   labs(title = "Profiles Across Latent Classes",
+#        x = "Latent Profile",
+#        y = "Mean Score",
+#        color = "Variable") +
+#   theme_minimal()
 
 # Plotting with variables on x-axis and latent profiles as colors in the legend
 plot2 <- ggplot(mean_values_long, aes(x = variable, y = value, color = factor(justice_class), group = factor(justice_class))) +
@@ -112,5 +114,23 @@ plot2 <- ggplot(mean_values_long, aes(x = variable, y = value, color = factor(ju
 
 plot1 + plot2 + plot_layout(ncol = 2)
 
+# Plotting the profiles per participant
+# Pivot the lpa_data into long format for plotting each participant
+participant_long <- lpa_data %>%
+  pivot_longer(cols = utilitarian:limitarian, 
+               names_to = "variable", 
+               values_to = "value")
 
-############################ demographics ################################
+plot_participants <- ggplot(participant_long, aes(x = variable, y = value, group = ID, color = factor(justice_class))) +
+  geom_line(alpha = 0.1, size = 0.5) +   # Thin and transparent lines for individual participants
+  labs(title = "Individual Participant Profiles",
+       x = "Principle",
+       y = "Score",
+       color = "Latent Profile") +
+  theme_minimal() +
+  guides(color = guide_legend(override.aes = list(size = 2)))
+
+# Display the updated plot with thicker legend lines
+plot_participants
+
+

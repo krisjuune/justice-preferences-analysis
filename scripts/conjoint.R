@@ -16,18 +16,20 @@ df_pv <- read.csv("data/pv-conjoint.csv")
 #AMCE = regression coefficients where there’s an omitted reference category
 #Marginal means = conditional averages for different category levels
 
-# set default theme and font stuff
-theme_set(theme_nice())
-update_geom_defaults("text", list(family = "Jost-Regular", fontface = "plain"))
-update_geom_defaults("label", list(family = "Jost-Regular", fontface = "plain"))
-
 # remove speeders, laggards, and inattentives
 df_heat <- filter_respondents(df_heat)
 df_pv <- filter_respondents(df_pv)
 
 # factorise conjoints and variables for subgroup analysis
-df_heat <- factor_conjoints(df_heat, experiment = "heat")
-df_pv <- factor_conjoints(df_pv, experiment = "pv")
+df_heat <- factor_conjoint(df_heat, experiment = "heat")
+df_pv <- factor_conjoint(df_pv, experiment = "pv") 
+#TODO there's an issue with preserving justice class, get only NaN values
+# works fine for heat but not for pv, super weird
+
+# set default theme and font stuff
+theme_set(theme_nice())
+update_geom_defaults("text", list(family = "Jost-Regular", fontface = "plain"))
+update_geom_defaults("label", list(family = "Jost-Regular", fontface = "plain"))
 
 
 ############################## AMCE ##################################
@@ -178,3 +180,63 @@ plot(mm_justice_pv, group = "justice_class", vline = 0.5) +
 
 write.csv(heat_amce_choice, "data/heat-amce.csv", row.names = TRUE)
 write.csv(pv_amce_choice, "data/pv-amce.csv", row.names = TRUE)
+
+############################ justice and demo ################################
+# get combined df for justice analysis
+df_just <- bind_rows(
+  df_heat %>% select(ID, gender, age, region, income, citizen, renting, party, justice_class)#,
+  #df_pv %>% select(ID, gender, age, region, income, citizen, renting, party, trust, justice_class)
+) %>%
+  distinct(ID, .keep_all = TRUE) 
+
+df_long <- df_just %>%
+  select(gender, age, region, income, citizen, renting, party, justice_class) %>%
+  pivot_longer(cols = gender:party, 
+               names_to = "variable", 
+               values_to = "category")
+
+#TODO fix below
+# Run multinomial logistic regression
+# multinom_model <- multinom(justice_class ~ gender + age_category + language_region + income_category + tenant_status + citizenship, 
+#                            data = your_data)
+# 
+# # Summarize the results
+# summary(multinom_model)
+# 
+# # If you want to calculate p-values:
+# z <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
+# p_values <- (1 - pnorm(abs(z), 0, 1)) * 2
+# 
+# # View p-values
+# p_values
+
+# Create a contingency table for justice_class and gender
+heatmap_data <- df_heat %>%
+  group_by(justice_class, gender) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+# Optional: Normalize counts to percentages by gender
+heatmap_data <- heatmap_data %>%
+  group_by(gender) %>%
+  mutate(percentage = count / sum(count) * 100)
+
+# Plot the heatmap (using percentage or count)
+ggplot(heatmap_data, aes(x = gender, y = justice_class, fill = percentage)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(low = "white", high = "blue") + 
+  labs(title = "Heatmap of Justice Class by Gender",
+       x = "Gender", 
+       y = "Latent Profile", 
+       fill = "Percentage") +
+  theme_minimal()
+
+# Plot heatmap with facets
+ggplot(df_long, aes(x = justice_class, fill = category)) +
+  geom_bar(position = "fill") +  # To normalize counts as a proportion
+  facet_wrap(~ variable, scales = "free", ncol = 2) +  # Create facets for each variable
+  labs(title = "Latent Profiles by Demographic Variables",
+       x = "Latent Profile",
+       y = "Proportion") +
+  theme_minimal() +
+  theme(legend.position = "bottom")

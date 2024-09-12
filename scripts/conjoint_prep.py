@@ -1,6 +1,6 @@
 import pandas as pd
 from functions.conjoint_assist import prep_conjoint
-from functions.data_assist import apply_mapping, rename_columns
+from functions.data_assist import apply_mapping
 
 # run this after LPA 
 
@@ -196,8 +196,8 @@ df = df.merge(
 respondents = df[[
         "ID", "duration_min", "gender", "age", "region", "canton", "citizen", 
         "education", "urbanness", "renting", "income", "household-size", "party", 
-        "satisfaction_1", "justice_class", "speeder", "laggard", "inattentive"
-        ]] # missing trust, literacy
+        "satisfaction_1", "justice_class", "speeder", "laggard", "inattentive", 
+        "trust"]] # missing literacy
 
 heat_regex = 'pv|mix|imports|tradeoffs|distribution'
 heat_filemarker = 'heat'
