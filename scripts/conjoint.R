@@ -184,31 +184,96 @@ write.csv(pv_amce_choice, "data/pv-amce.csv", row.names = TRUE)
 ############################ justice and demo ################################
 # get combined df for justice analysis
 df_just <- bind_rows(
-  df_heat %>% select(ID, gender, age, region, income, citizen, renting, party, justice_class)#,
-  #df_pv %>% select(ID, gender, age, region, income, citizen, renting, party, trust, justice_class)
+  df_heat %>% select(ID, 
+                     gender, 
+                     age, 
+                     region, 
+                     income, 
+                     education,
+                     citizen, 
+                     renting, 
+                     urbanness,
+                     party, 
+                     trust,
+                     justice_class),
+  df_pv %>% select(ID, 
+                   gender, 
+                   age, 
+                   region,
+                   income, 
+                   education, 
+                   citizen, 
+                   renting, 
+                   urbanness, 
+                   party, 
+                   trust, 
+                   justice_class)
 ) %>%
   distinct(ID, .keep_all = TRUE) 
 
-df_long <- df_just %>%
-  select(gender, age, region, income, citizen, renting, party, justice_class) %>%
+df_long <- df_just %>%  # for plotting the group compositions
+  select(gender, 
+         age, 
+         region, 
+         income, 
+         # education,
+         # citizen, 
+         # renting, 
+         urbanness,
+         party, 
+         trust,
+         justice_class) %>%
   pivot_longer(cols = gender:party, 
                names_to = "variable", 
                values_to = "category")
 
-#TODO fix below
 # Run multinomial logistic regression
-# multinom_model <- multinom(justice_class ~ gender + age_category + language_region + income_category + tenant_status + citizenship, 
-#                            data = your_data)
-# 
-# # Summarize the results
-# summary(multinom_model)
-# 
-# # If you want to calculate p-values:
-# z <- summary(multinom_model)$coefficients / summary(multinom_model)$standard.errors
-# p_values <- (1 - pnorm(abs(z), 0, 1)) * 2
-# 
-# # View p-values
-# p_values
+df_just$justice_class <- relevel(df_just$justice_class, ref = "universal")
+multinom_model <- multinom(justice_class ~ 
+                             gender +
+                             age +
+                             region +
+                             income +
+                             education +
+                             citizen +
+                             renting +
+                             urbanness  +
+                             party +
+                             trust,
+                           data = df_just)
+
+# Summarize the results
+summary_model <- summary(multinom_model)
+
+# Extract coefficients
+coefficients <- summary_model$coefficients
+
+# Extract standard errors
+standard_errors <- summary_model$standard.errors
+
+# Calculate z-values and p-values
+z <- coefficients / standard_errors
+p_values <- (1 - pnorm(abs(z), 0, 1)) * 2
+
+# Calculate odds ratios
+odds_ratios <- exp(coefficients)
+
+# Convert coefficients, odds ratios, and p-values to data frames
+coefficients_df <- as.data.frame(coefficients)
+odds_ratios_df <- as.data.frame(odds_ratios)
+p_values_df <- as.data.frame(p_values)
+
+# Combine coefficients, odds ratios, and p-values into one data frame
+results_df <- cbind(coefficients_df, odds_ratios_df, p_values_df)
+
+# Update column names
+colnames(results_df) <- c(paste0("Coefficient_", colnames(coefficients_df)),
+                          paste0("OddsRatio_", colnames(odds_ratios_df)),
+                          paste0("P_value_", colnames(p_values_df)))
+
+# Save the results to a CSV file
+write.csv(results_df, "data/multinom_justice.csv", 
+          row.names = TRUE)
 
 # Create a contingency table for justice_class and gender
 heatmap_data <- df_heat %>%
@@ -231,12 +296,23 @@ ggplot(heatmap_data, aes(x = gender, y = justice_class, fill = percentage)) +
        fill = "Percentage") +
   theme_minimal()
 
-# Plot heatmap with facets
-ggplot(df_long, aes(x = justice_class, fill = category)) +
+# Plot proportions for each justice group
+df_filtered <- df_long %>%
+  filter(
+    !(variable == "income" & (is.na(category) | category == "NA")),  # Exclude NA in income
+    !(variable == "party" & (is.na(category) | category == "NA")),   # Exclude NA in party
+    !(variable == "region" & category == "italian"),              # Exclude 'italian' from region
+    !(variable == "gender" & category == "non-binary")            # Exclude 'non-binary' from gender
+  )
+
+ggplot(df_filtered, aes(x = justice_class, fill = category)) +
   geom_bar(position = "fill") +  # To normalize counts as a proportion
   facet_wrap(~ variable, scales = "free", ncol = 2) +  # Create facets for each variable
   labs(title = "Latent Profiles by Demographic Variables",
        x = "Latent Profile",
        y = "Proportion") +
   theme_minimal() +
+  scale_fill_viridis_d(option = "D", drop = FALSE) + 
+  # scale_fill_manual(values = c("red", "blue", "green", "orange", "purple", "yellow")) +  # Define specific colors
   theme(legend.position = "bottom")
+  

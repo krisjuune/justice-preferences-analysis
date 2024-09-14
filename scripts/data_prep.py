@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np 
 import plotly.express as px
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from functions.data_assist import apply_mapping, rename_columns
 
 #%% reset working directory
@@ -14,7 +14,7 @@ os.chdir(wd)
 
 #%% ############################# read data ##################################
 
-df = pd.read_csv('data/conjoint.csv')
+df = pd.read_csv('data/raw_conjoint.csv')
 
 # check data 
 pd.set_option('display.max_columns', None) # displays all columns when printing parts of the df
@@ -131,15 +131,23 @@ demographics_dict = {
     "Italienischsprachige Schweiz": "italian",
     "Rätoromanische Schweiz": "romansh",
 
+    # survey language
+    "Deutsch": "german",
+    "Französisch": "french",
+    "Italienisch": "italian",
+
     # income
-    "Unter CHF 70,000": "low", 
-    "CHF 70,000 – CHF 100,000": "mid",
-    "CHF 100,001 – CHF 150,000": "mid",
-    "CHF 150,001 – CHF 250,000": "high", 
-    "Über 250,000": "high",
+    "Unter CHF 70,000": "low", # lower
+    "CHF 70,000 – CHF 100,000": "mid", # lower
+    "CHF 100,001 – CHF 150,000": "mid", # higher
+    "CHF 150,001 – CHF 250,000": "high", # higher
+    "Über 250,000": "high", # higher
     "Möchte ich nicht sagen": np.nan, 
-    
+
     # education 
+    "Keine Matura": "no secondary",
+    "Matura oder Berufsausbildung": "secondary",
+    "Abschluss einer Fachhochschule oder Universität": "university",
 
     # citizen 
     "Ja": True, 
@@ -149,22 +157,23 @@ demographics_dict = {
     "Mieter:in": True, 
     "Besitzer:in": False,
 
-    #TODO check mapping of pol parties and income
-    #TODO add missing variables
     # urbanness
+    "Stadt": "city",
+    "Agglomeration": "suburb",
+    "Land": "rural",
 
     # political orientation
     "Grüne Partei der Schweiz (GPS)": "left", 
     "Sozialdemokratische Partei der Schweiz (SP)": "left", 
     "Grünliberale Partei (GLP)": "liberal", 
     "Die Mitte (ehemals CVP/BDP)": "liberal", 
-    "Die Liberalen (FDP)": "liberal", 
+    "Die Liberalen (FDP)": "conservative", 
     "Schweizerische Volkspartei (SVP)": "conservative", 
     "Andere": np.nan, 
     "Keine": np.nan, 
     "Möchte ich nicht sagen": np.nan
 
-    # energy literacy
+    #TODO energy literacy
 }
 
 # apply mapping to columns whose names contain 'table'
@@ -173,10 +182,24 @@ df = apply_mapping(df, demographics_dict)
 # household size ?
 # satisfaction?
 
-# political trust
+# create categorical political trust and governmental satisfaction
 df = df.copy() # reduce fragmentation
-df['trust'] = pd.concat([df['trust_1'], df['trust_2'], df['trust_3']], axis=1).mean(axis=1).round(3)
+df['trust_mean'] = pd.concat([df['trust_1'], df['trust_2'], df['trust_3']], axis=1).mean(axis=1).round(3)
+df['trust'] = pd.cut(df['trust_mean'], 
+                              bins=[-float('inf'), 
+                                    df['trust_mean'].quantile(0.33), 
+                                    df['trust_mean'].quantile(0.65), # ensures ~33% in each bin
+                                    float('inf')], 
+                              labels=['low', 'mid', 'high'], 
+                              include_lowest=True)
 
+df['satisfaction'] = pd.cut(df['satisfaction_1'], 
+                              bins=[-float('inf'), 
+                                    df['satisfaction_1'].quantile(0.27), 
+                                    df['satisfaction_1'].quantile(0.63), # ensures ~33% in each bin
+                                    float('inf')], 
+                              labels=['low', 'mid', 'high'], 
+                              include_lowest=True)
 
 # %% ################################# recode justice ##############################
 

@@ -150,10 +150,6 @@ translate_dict_pv = {
 conjoint_dict = translation_dict_heat | translate_dict_pv
 df = apply_mapping(df, conjoint_dict, column_pattern='table')
 
-#TODO why are there tables saved for everyone for pv experiment even for those who did not participate in that one
-
-
-
 # %% ############################# add lpa data #######################################
 
 lpa_cont = pd.read_csv('data/lpa_data.csv')
@@ -196,7 +192,7 @@ df = df.merge(
 respondents = df[[
         "ID", "duration_min", "gender", "age", "region", "canton", "citizen", 
         "education", "urbanness", "renting", "income", "household-size", "party", 
-        "satisfaction_1", "justice_class", "speeder", "laggard", "inattentive", 
+        "satisfaction", "justice_class", "speeder", "laggard", "inattentive", 
         "trust"]] # missing literacy
 
 heat_regex = 'pv|mix|imports|tradeoffs|distribution'

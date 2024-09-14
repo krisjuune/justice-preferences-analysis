@@ -56,15 +56,19 @@ theme_nice <- function() {
 factor_conjoint <- function(df, experiment) {
   ### check and factorise justice_class
   if ("justice_class" %in% colnames(df)) {
+    if (!is.numeric(df$justice_class)) {
+      df <- df %>%
+        mutate(justice_class = as.numeric(justice_class))
+    }
     df <- df %>%
       mutate(
         justice_class = factor(
           case_when(
-            justice_class == "1" ~ 0,
-            justice_class == "2" ~ 1,
-            justice_class == "3" ~ 2#,
-            # TRUE ~ NA_real_
-            ),
+            justice_class == 1 ~ 0,
+            justice_class == 2 ~ 1,
+            justice_class == 3 ~ 2,
+            TRUE ~ NA_real_
+          ),
           levels = 0:2,
           labels = c("egalitarian", "utilitarian", "universal")
         )
@@ -121,6 +125,38 @@ factor_conjoint <- function(df, experiment) {
         )
       )
   }
+
+  if ("language" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        language = factor(
+          case_when(
+            language == "german" ~ 0,
+            language == "french" ~ 1,
+            language == "italian" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("german", "french", "italian")
+        )
+      )
+  }
+
+  if ("education" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        education = factor(
+          case_when(
+            education == "no secondary" ~ 0,
+            education == "secondary" ~ 1,
+            education == "university" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("no secondary", "secondary", "university")
+        )
+      )
+  }
   
   if ("income" %in% colnames(df)) {
     df <- df %>%
@@ -150,6 +186,54 @@ factor_conjoint <- function(df, experiment) {
           ),
           levels = 0:2,
           labels = c("left", "liberal", "conservative")
+        )
+      )
+  }
+  
+  if ("urbanness" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        urbanness = factor(
+          case_when(
+            urbanness == "city" ~ 0,
+            urbanness == "suburb" ~ 1,
+            urbanness == "rural" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("city", "suburb", "rural")
+        )
+      )
+  }
+
+  if ("trust" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        trust = factor(
+          case_when(
+            trust == "low" ~ 0,
+            trust == "mid" ~ 1,
+            trust == "high" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("low", "mid", "high")
+        )
+      )
+  }
+
+    if ("satisfaction" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        satisfaction = factor(
+          case_when(
+            satisfaction == "low" ~ 0,
+            satisfaction == "mid" ~ 1,
+            satisfaction == "high" ~ 2,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:2,
+          labels = c("low", "mid", "high")
         )
       )
   }
@@ -236,15 +320,6 @@ factor_conjoint <- function(df, experiment) {
   } else if (experiment == "pv") {
     df <- df %>%
       mutate(
-        justice_class = factor(
-          case_when(
-            justice_class == "1" ~ 0,
-            justice_class == "2" ~ 1,
-            justice_class == "3" ~ 2,
-            TRUE ~ NA_real_),
-          levels = 0:2, 
-          labels = c("egalitarian", "utilitarian", "universal")
-        ),
         mix = factor(
           case_when(
             mix == "More hydro" ~ 0,
