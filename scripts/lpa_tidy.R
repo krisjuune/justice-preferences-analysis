@@ -18,6 +18,10 @@ lpa_data <- lpa_raw %>%
   filter_respondents() %>%
   drop_na() # 5 missing for respondents that dropped out during or before the justice section
 
+###################### check consistency #########################
+
+
+########################## run LPA ###############################
 # LPA with mclust
 lpa_columns <- lpa_data[, c('utilitarian', 'egalitarian', 'sufficientarian', 'limitarian')]
 lpa_model_mclust <- Mclust(lpa_columns)
@@ -58,7 +62,7 @@ counts <- table(lpa_data$justice_class)
 # class 2: universal (scores for all around 2) -- 788 (bi 584)
 # class 1: utilitarian (and minimally sufficientarian and limitarian) -- 196 (bi 406)
 
-write.csv(lpa_class, "data/lpa_data.csv", row.names = TRUE)
+# write.csv(lpa_class, "data/lpa_data.csv", row.names = TRUE)
 
 ########################## test plots ################################
 plot1 <- ggplot(lpa_data, aes(x = factor(justice_class), fill = factor(justice_class))) +

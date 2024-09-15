@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np 
 import plotly.express as px
 # import matplotlib.pyplot as plt
+import pingouin as pg
 from functions.data_assist import apply_mapping, rename_columns
 
 #%% reset working directory
@@ -246,7 +247,62 @@ lpa_data = df_justice[['ID',
                        'inattentive']]
 lpa_data.to_csv('data/lpa_input.csv', index=False)
 
+lpa_data = df_justice[['ID', 
+                       'utilitarian', 
+                       'egalitarian', 
+                       'sufficientarian', 
+                       'limitarian',
+                       'speeder', 
+                       'laggard', 
+                       'inattentive']]
+lpa_data.to_csv('data/lpa_input.csv', index=False)
+
 # now run lpa analysis
+
+# %% ################### check ICC for justice ##########################
+
+lpa_data = df_justice[['ID', 
+                       'utilitarian', 
+                       'egalitarian', 
+                       'sufficientarian', 
+                       'limitarian', 
+                       'justice-general_1', 
+                       'justice-tax_1', 
+                       'justice-subsidy_1',
+                       'justice-general_2', 
+                       'justice-tax_2',
+                       'justice-subsidy_2',
+                       'justice-general_3',
+                       'justice-tax_3',
+                       'justice-subsidy_3',
+                       'justice-general_4',
+                       'justice-tax_4',
+                       'justice-subsidy_4',
+                       'speeder', 
+                       'laggard', 
+                       'inattentive']]
+
+
+lpa_data = lpa_data[(df_justice['speeder'] == False) & 
+              (df_justice['laggard'] == False) & 
+              (df_justice['inattentive'] == False)]
+
+df_long = lpa_data.melt(id_vars=['ID'], 
+                        value_vars=['justice-general_1', 'justice-tax_1', 'justice-subsidy_1',
+                                    'justice-general_2', 'justice-tax_2', 'justice-subsidy_2',
+                                    'justice-general_3', 'justice-tax_3', 'justice-subsidy_3',
+                                    'justice-general_4', 'justice-tax_4', 'justice-subsidy_4'],
+                        var_name='variable', value_name='score')
+
+# Extract set number from variable name (1, 2, 3, or 4)
+df_long['set'] = df_long['variable'].str.extract(r'(\d+)')
+
+icc_results = pg.intraclass_corr(data=df_long, 
+                                 targets='ID', 
+                                 raters='set', 
+                                 ratings='score')
+
+print(icc_results)
 
 # %% ######################################### check sample #################################################
 
