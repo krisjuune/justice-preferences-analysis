@@ -16,31 +16,37 @@ lpa_raw <- lpa_raw %>%
   )
 lpa_data <- lpa_raw %>%
   filter_respondents() %>%
-  drop_na() # 5 missing for respondents that dropped out during or before the justice section
-
-###################### check consistency #########################
-
+  drop_na()
+# 5 missing for respondents that dropped out
+# during or before the justice section
 
 ########################## run LPA ###############################
 # LPA with mclust
-lpa_columns <- lpa_data[, c('utilitarian', 'egalitarian', 'sufficientarian', 'limitarian')]
+lpa_columns <- lpa_data[, c("utilitarian",
+                            "egalitarian",
+                            "sufficientarian",
+                            "limitarian")]
 lpa_model_mclust <- Mclust(lpa_columns)
 
 summary(lpa_model_mclust) # check output
 print(lpa_model_mclust) # best model according to BIC
 
-lpa_columns$mclust_class <- lpa_model_mclust$classification # classification of each observation
+# classification of each observation
+lpa_columns$mclust_class <- lpa_model_mclust$classification
 
-#TODO write code for choosing the nr of profiles automatically and rerunning the model with just that value
-# LPA with tidyLPA
+#TODO write code for choosing the nr of profiles automatically
+# and rerunning the model with just that value
+# tidy the mclust LPA model with tidyLPA
 lpa_model_tidy <- lpa_columns %>%
   select(-mclust_class) %>%  # exclude the mclust class column if included
   single_imputation() %>%    # handle missing data if necessary
-  estimate_profiles(n_profiles = 3:3, # adjust the range for the number of profiles you want to test
+  estimate_profiles(n_profiles = 3:3, # adjust the range for nr of profiles
                     package = "mclust") # using mclust as the estimation package
 
 # summarize the tidyLPA model
-lpa_model_tidy # 3 classes has the highest entropy, BIC is very similar and lowest for 5 classes
+lpa_model_tidy
+# 3 classes has the highest entropy,
+# BIC is very similar and lowest for 5 classes
 
 # compare models
 compare_solutions(lpa_model_tidy)
@@ -60,12 +66,14 @@ lpa_class <- lpa_raw %>%
 counts <- table(lpa_data$justice_class)
 # class 3: egalitarian (and sufficientarian and limitarian) -- 1032 (bi 1029)
 # class 2: universal (scores for all around 2) -- 788 (bi 584)
-# class 1: utilitarian (and minimally sufficientarian and limitarian) -- 196 (bi 406)
+# class 1: utilitarian (v low scores for all, highest for util) -- 196 (bi 406)
 
-# write.csv(lpa_class, "data/lpa_data.csv", row.names = TRUE)
+write.csv(lpa_class, "data/lpa_data.csv", row.names = TRUE)
 
 ########################## test plots ################################
-plot1 <- ggplot(lpa_data, aes(x = factor(justice_class), fill = factor(justice_class))) +
+plot1 <- ggplot(lpa_data,
+                aes(x = factor(justice_class),
+                    fill = factor(justice_class))) +
   geom_bar() +
   labs(title = "Distribution of Classes by tidyLPA",
        x = "Latent Profile",

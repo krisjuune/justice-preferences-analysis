@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np 
 import plotly.express as px
-# import matplotlib.pyplot as plt
 import pingouin as pg
 from functions.data_assist import apply_mapping, rename_columns
 
 #%% reset working directory
 import os
 print(os.getcwd())
-wd = '/Users/kristiinajoon/Documents/Projects/Qualtrics'
+wd = '/Users/kristiinajoon/Documents/Projects/justice-conjoint'
 os.chdir(wd)
 
 
@@ -180,8 +179,7 @@ demographics_dict = {
 # apply mapping to columns whose names contain 'table'
 df = apply_mapping(df, demographics_dict)
 
-# household size ?
-# satisfaction?
+#TODO household size ?
 
 # create categorical political trust and governmental satisfaction
 df = df.copy() # reduce fragmentation
@@ -247,16 +245,6 @@ lpa_data = df_justice[['ID',
                        'inattentive']]
 lpa_data.to_csv('data/lpa_input.csv', index=False)
 
-lpa_data = df_justice[['ID', 
-                       'utilitarian', 
-                       'egalitarian', 
-                       'sufficientarian', 
-                       'limitarian',
-                       'speeder', 
-                       'laggard', 
-                       'inattentive']]
-lpa_data.to_csv('data/lpa_input.csv', index=False)
-
 # now run lpa analysis
 
 # %% ################### check ICC for justice ##########################
@@ -295,14 +283,17 @@ df_long = lpa_data.melt(id_vars=['ID'],
                         var_name='variable', value_name='score')
 
 # Extract set number from variable name (1, 2, 3, or 4)
-df_long['set'] = df_long['variable'].str.extract(r'(\d+)')
+df_long['principle'] = df_long['variable'].str.extract(r'(\d+)')
 
 icc_results = pg.intraclass_corr(data=df_long, 
                                  targets='ID', 
-                                 raters='set', 
+                                 raters='principle', 
                                  ratings='score')
 
 print(icc_results)
+
+# p-values are actually so small they get shown as 0.0, 
+# tested by only looking at general and subsidy
 
 # %% ######################################### check sample #################################################
 
