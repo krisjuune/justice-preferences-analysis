@@ -7,6 +7,8 @@ library(survey)
 library(dplyr)
 library(broom.helpers)
 library(parameters)
+library(gridExtra)
+library(grid)
 source("functions/r-assist.R")
 
 
@@ -141,45 +143,104 @@ results_heat <- marginal_means(df_heat, response_var_heat, predictors_heat, outp
 
 ############################### subgroup MMs ################################
 
-#Choice outcome
-mm_justice_heat <- cj(
-  df_heat,
-  Y ~ year + tax + ban + heatpump + energyclass + exemption,
-  id = ~ID,
-  estimate = "mm",
-  by = ~justice_class
-)
+# loop over the two experiments and demographic variables, incl justice class
+by_variables <- c("justice_class", 
+                  "age", 
+                  "gender", 
+                  "region", 
+                  "income", 
+                  "education", 
+                  "urbanness", 
+                  "party", 
+                  "trust", 
+                  "satisfaction")
 
-mm_justice_heat
+#TODO add citizen and renting (issue with their factorisation probs)
 
-#plot
-plot(mm_justice_heat, group = "justice_class", vline = 0.5) +
-  # theme_nice() +
-  labs(title = "Choice outcome") +
-  xlim(0.3, 0.7)
+# Define the experiments
+experiments <- c("heat", "pv")
 
-#Choice outcome
-mm_justice_pv <- cj(
-  df_pv,
-  Y ~ mix + imports + pv + tradeoffs + distribution,
-  id = ~ID,
-  estimate = "mm",
-  by = ~justice_class
-)
+# Loop over both experiments and the 'by' variables
+for (experiment in experiments) {
+  # choose the dataframe for each experiment
+  df <- if (experiment == "heat") df_heat else df_pv
+  
+  # loop over each 'by' variable
+  for (by in by_variables) {
+    # save subgroup analyses for each variable
+    result <- subgroup_mm(df, by = by, experiment = experiment, save_file = TRUE, get_plot = TRUE)
+    
+    # print message if completed
+    print(paste("Completed:", experiment, "for", by))
+  }
+}
 
-mm_justice_heat
+#TODO same thing for plotting
+#TODO combine with above potentially
+#TODO by_var legend and title not working 
+# initialize an empty list to store all the plots
+all_plots <- list()
 
-#plot
-plot(mm_justice_pv, group = "justice_class", vline = 0.5) +
-  # theme_nice() +
-  labs(title = "Choice outcome") +
-  xlim(0.3, 0.7)
+# for each experiment ('heat' and 'pv')
+for (experiment in experiments) {
+  # choose the dataframe for each experiment
+  df <- if (experiment == "heat") df_heat else df_pv
+  
+  # initialize an empty list to store the plots for each 'by' variable
+  experiment_plots <- list()
+  
+  # loop over each 'by' variable
+  for (by_var in by_variables) {
+    
+    # call the function to compute marginal means and plot
+    result <- subgroup_mm(df = df,
+                          by = by_var,
+                          experiment = experiment,
+                          save_file = FALSE,
+                          get_plot = TRUE)
+    
+    # Add a title to each subplot specifying the 'by' variable
+    plot_with_title <- result$plot +
+      ggtitle(paste("By:", by_var)) +  # Add the by-variable as title
+      theme(plot.title = element_text(hjust = 0.5, size = 14))  # Center the title and adjust size
+    
+    # Store the plot in the experiment_plots list
+    experiment_plots[[by_var]] <- plot_with_title
+    
+    # Save the marginal means (mm_results) to a file if desired
+    # write.csv(result$mm_results, paste0(experiment, "_", by_var, "_MMs.csv"))
+  }
+  
+  # Combine all the plots for this experiment into one large plot using gridExtra::grid.arrange
+  combined_plot <- do.call(grid.arrange, c(experiment_plots, ncol = 3))  # Adjust 'ncol' to control the number of columns
+  
+  # Create a general title for the combined plot based on the experiment type
+  general_title <- textGrob(paste("Marginal Means for", experiment, "Experiment"),
+                            gp = gpar(fontsize = 18, fontface = "bold"))  # Adjust font size and style
+  
+  # Arrange the general title and the combined plots in a grid
+  final_plot <- grid.arrange(general_title, combined_plot, ncol = 1, heights = c(0.1, 0.9))
+  
+  # Store the combined plot for the experiment
+  all_plots[[experiment]] <- final_plot
+  
+  # Optionally, save the combined plot to a file
+  ggsave(paste0("plot-files/", experiment, "_combined_MMs.png"), 
+         plot = combined_plot, 
+         width = 15, 
+         height = 10)
+}
+
+# To view one of the combined plots:
+print(all_plots$heat)  # To display the combined plot for 'heat'
+print(all_plots$pv)    # To display the combined plot for 'pv'
 
 #################################### IRR ####################################
 # run this in Python after this script, so save everything to file
 
 write.csv(heat_amce_choice, "data/heat-amce.csv", row.names = TRUE)
 write.csv(pv_amce_choice, "data/pv-amce.csv", row.names = TRUE)
+
 
 ############################ justice and demo ################################
 # get combined df for justice analysis

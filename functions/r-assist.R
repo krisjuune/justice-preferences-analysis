@@ -1,7 +1,9 @@
 library(broom)
+library(dplyr)
 library(survey)
 library(marginaleffects)
 library(ggplot2)
+library(gridExtra)
 
 filter_respondents <- function(df, 
                                filter_speeders = TRUE, 
@@ -170,6 +172,36 @@ factor_conjoint <- function(df, experiment) {
           ),
           levels = 0:2,
           labels = c("low", "mid", "high")
+        )
+      )
+  }
+  
+  if ("citizen" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        citizen = factor(
+          case_when(
+            citizen == TRUE ~ 0,
+            citizen == FALSE ~ 1,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:1,
+          labels = c("yes", "no")
+        )
+      )
+  }
+  
+  if ("renting" %in% colnames(df)) {
+    df <- df %>%
+      mutate(
+        citizen = factor(
+          case_when(
+            renting == TRUE ~ 0,
+            renting == FALSE ~ 1,
+            TRUE ~ NA_real_
+          ),
+          levels = 0:1,
+          labels = c("yes", "no")
         )
       )
   }
@@ -460,4 +492,62 @@ marginal_means <- function(df,
   print(paste("MMs data for plotting saved to", output_file))
   
   return(list(lin_model_summary = tidy(lin_model), svyglm_model = model_pv, marginal_effects = mfx_pv, plot = p))
+}
+
+subgroup_mm <- function(df, 
+                        by,
+                        experiment="heat", 
+                        save_file=TRUE, 
+                        get_plot=FALSE)
+  {
+  
+  # get predictors per experiment
+  if (experiment == "heat") {
+    predictors <- c("year", "tax", "ban", "heatpump", "energyclass", "exemption")
+  } else if (experiment == "pv") {
+    predictors <- c("mix", "imports", "pv", "tradeoffs", "distribution")
+  } else {
+    stop("Error: experiment must be either 'heat' or 'pv'.")
+  }
+
+  # create the formula dynamically
+  formula <- as.formula(paste("Y ~", paste(predictors, collapse = " + ")))
+  
+  # run the conditional marginal means (cj) function
+  mm_results <- cj(
+    df,
+    formula,
+    id = ~ID,
+    estimate = "mm",
+    by = as.formula(paste("~", by))  # Group by variable passed as 'by'
+  )
+  
+  # optionally save the file
+  if (save_file) {
+    # Save to CSV (you can choose any format or path)
+    write.csv(mm_results, 
+              file = paste0("data/",
+                            experiment,
+                            "_",
+                            by,
+                            "_MMs.csv"), 
+              row.names = FALSE)
+  }
+
+  # initialize plot_output to NULL
+  plot_output <- NULL
+
+  # optionally plot results
+  if (get_plot) {
+    plot_output <- plot(mm_results, group = by, vline = 0.5) +
+      labs(title = paste0("Choice outcome of ", by)) +
+      # xlim(0.3, 0.7) +
+      theme_nice()
+    # return results with the plot data
+    return(list(mm_results = mm_results, plot = plot_output))
+  }
+
+  else {
+    return(list(mm_results = mm_results))
+  }
 }
