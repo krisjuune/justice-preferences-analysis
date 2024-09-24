@@ -541,8 +541,8 @@ subgroup_mm <- function(df,
   if (get_plot) {
     plot_output <- plot(mm_results, group = by, vline = 0.5) +
       labs(title = paste0("Choice outcome of ", by)) +
-      # xlim(0.3, 0.7) +
-      theme_nice()
+      xlim(0.3, 0.7)
+      # theme_nice()
     # return results with the plot data
     return(list(mm_results = mm_results, plot = plot_output))
   }

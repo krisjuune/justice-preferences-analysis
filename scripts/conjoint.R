@@ -1,14 +1,16 @@
 library(tidyverse)
+library(dplyr)
+library(purrr) # for functional programming
 library(arrow)
 library(broom)
 library(cregg)
 library(marginaleffects)
 library(survey)
-library(dplyr)
 library(broom.helpers)
 library(parameters)
 library(gridExtra)
 library(grid)
+
 source("functions/r-assist.R")
 
 
@@ -234,6 +236,93 @@ for (experiment in experiments) {
 # To view one of the combined plots:
 print(all_plots$heat)  # To display the combined plot for 'heat'
 print(all_plots$pv)    # To display the combined plot for 'pv'
+
+#TODO to be deleted
+mm_party_pv <- cj(
+  df_pv,
+  Y ~ mix + imports + pv + tradeoffs + distribution,
+  id = ~ID,
+  estimate = "mm",
+  by = ~party
+)
+
+#plot
+plot(mm_party_pv, group = "party", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
+mm_trust_pv <- cj(
+  df_pv,
+  Y ~ mix + imports + pv + tradeoffs + distribution,
+  id = ~ID,
+  estimate = "mm",
+  by = ~trust
+)
+
+#plot
+plot(mm_trust_pv, group = "trust", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
+mm_satisfaction_pv <- cj(
+  df_pv,
+  Y ~ mix + imports + pv + tradeoffs + distribution,
+  id = ~ID,
+  estimate = "mm",
+  by = ~satisfaction
+)
+
+#plot
+plot(mm_satisfaction_pv, group = "satisfaction", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
+### heat
+mm_party_heat <- cj(
+  df_heat,
+  Y ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID,
+  estimate = "mm",
+  by = ~party
+)
+
+#plot
+plot(mm_party_heat, group = "party", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
+mm_trust_heat <- cj(
+  df_heat,
+  Y ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID,
+  estimate = "mm",
+  by = ~trust
+)
+
+#plot
+plot(mm_trust_heat, group = "trust", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
+mm_satisfaction_heat <- cj(
+  df_heat,
+  Y ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID,
+  estimate = "mm",
+  by = ~satisfaction
+)
+
+#plot
+plot(mm_satisfaction_heat, group = "satisfaction", vline = 0.5) +
+  # theme_nice() +
+  labs(title = "Choice outcome") +
+  xlim(0.3, 0.7)
+
 
 #################################### IRR ####################################
 # run this in Python after this script, so save everything to file
