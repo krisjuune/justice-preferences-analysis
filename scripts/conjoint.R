@@ -1,6 +1,7 @@
 library(tidyverse)
 library(dplyr)
 library(purrr) # for functional programming
+library(forcats) # for better factorisation management
 library(arrow)
 library(broom)
 library(cregg)
@@ -26,14 +27,7 @@ df_pv <- filter_respondents(df_pv)
 
 # factorise conjoints and variables for subgroup analysis
 df_heat <- factor_conjoint(df_heat, experiment = "heat")
-df_pv <- factor_conjoint(df_pv, experiment = "pv") 
-#TODO there's an issue with preserving justice class, get only NaN values
-# works fine for heat but not for pv, super weird
-
-# set default theme and font stuff
-theme_set(theme_nice())
-update_geom_defaults("text", list(family = "Jost-Regular", fontface = "plain"))
-update_geom_defaults("label", list(family = "Jost-Regular", fontface = "plain"))
+df_pv <- factor_conjoint(df_pv, experiment = "pv")
 
 
 ############################## AMCE ##################################
@@ -154,8 +148,8 @@ by_variables <- c("justice_class",
                   "education", 
                   "urbanness", 
                   "party", 
-                  "trust", 
-                  "satisfaction")
+                  "trust")
+                  # "satisfaction")
 
 #TODO add citizen and renting (issue with their factorisation probs)
 
@@ -170,18 +164,24 @@ for (experiment in experiments) {
   # loop over each 'by' variable
   for (by in by_variables) {
     # save subgroup analyses for each variable
-    result <- subgroup_mm(df, by = by, experiment = experiment, save_file = TRUE, get_plot = TRUE)
+    result <- subgroup_mm(df, 
+                          by = by, 
+                          experiment = experiment, 
+                          save_file = TRUE, 
+                          get_plot = FALSE)
     
     # print message if completed
     print(paste("Completed:", experiment, "for", by))
   }
 }
 
-#TODO same thing for plotting
 #TODO combine with above potentially
-#TODO by_var legend and title not working 
 # initialize an empty list to store all the plots
 all_plots <- list()
+x_limits <- c(0.3, 0.7)
+big_font <- 12
+med_font <- 10
+small_font <- 8
 
 # for each experiment ('heat' and 'pv')
 for (experiment in experiments) {
@@ -193,9 +193,21 @@ for (experiment in experiments) {
   
   # loop over each 'by' variable
   for (by_var in by_variables) {
+    # filter out specific levels for 'gender' and 'region'
+    if (by_var == "gender") {
+      df_filtered <- df %>% 
+        filter(gender %in% c("female", "male")) %>%
+        droplevels()
+    } else if (by_var == "region") {
+      df_filtered <- df %>% 
+        filter(region %in% c("german", "french")) %>%
+        droplevels()
+    } else {
+      df_filtered <- df
+    }
     
     # call the function to compute marginal means and plot
-    result <- subgroup_mm(df = df,
+    result <- subgroup_mm(df = df_filtered,
                           by = by_var,
                           experiment = experiment,
                           save_file = FALSE,
@@ -203,8 +215,17 @@ for (experiment in experiments) {
     
     # Add a title to each subplot specifying the 'by' variable
     plot_with_title <- result$plot +
-      ggtitle(paste("By:", by_var)) +  # Add the by-variable as title
-      theme(plot.title = element_text(hjust = 0.5, size = 14))  # Center the title and adjust size
+      ggtitle(paste("By:", by_var)) +  
+      theme_minimal() +
+      theme(
+        plot.title = element_text(hjust = 0.5, size = big_font),
+        axis.title.x = element_text(size = med_font),
+        axis.title.y = element_text(size = med_font),
+        axis.text = element_text(size = small_font),
+        legend.title = element_text(size = med_font),
+        legend.text = element_text(size = small_font)
+      ) +
+      xlim(x_limits)
     
     # Store the plot in the experiment_plots list
     experiment_plots[[by_var]] <- plot_with_title
@@ -218,7 +239,7 @@ for (experiment in experiments) {
   
   # Create a general title for the combined plot based on the experiment type
   general_title <- textGrob(paste("Marginal Means for", experiment, "Experiment"),
-                            gp = gpar(fontsize = 18, fontface = "bold"))  # Adjust font size and style
+                            gp = gpar(fontsize = 16, fontface = "bold"))  # Adjust font size and style
   
   # Arrange the general title and the combined plots in a grid
   final_plot <- grid.arrange(general_title, combined_plot, ncol = 1, heights = c(0.1, 0.9))
@@ -227,13 +248,13 @@ for (experiment in experiments) {
   all_plots[[experiment]] <- final_plot
   
   # Optionally, save the combined plot to a file
-  ggsave(paste0("plot-files/", experiment, "_combined_MMs.png"), 
+  ggsave(paste0("plot-files/MM-", experiment, "-combined.png"), 
          plot = combined_plot, 
-         width = 15, 
-         height = 10)
+         width = 25, 
+         height = 20)
 }
 
-# To view one of the combined plots:
+# check the combined plot
 print(all_plots$heat)  # To display the combined plot for 'heat'
 print(all_plots$pv)    # To display the combined plot for 'pv'
 

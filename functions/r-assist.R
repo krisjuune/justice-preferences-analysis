@@ -102,11 +102,11 @@ factor_conjoint <- function(df, experiment) {
             age == "18-39" ~ 0,
             age == "40-64" ~ 1,
             age == "65-79" ~ 2,
-            age == "80+" ~ 3,
+            age == "80+" ~ 2,
             TRUE ~ NA_real_
           ),
-          levels = 0:3,
-          labels = c("18-39", "40-64", "65-79", "80+")
+          levels = 0:2,
+          labels = c("18-39", "40-64", "65+")
         )
       )
   }
@@ -540,8 +540,8 @@ subgroup_mm <- function(df,
   # optionally plot results
   if (get_plot) {
     plot_output <- plot(mm_results, group = by, vline = 0.5) +
-      labs(title = paste0("Choice outcome of ", by)) +
-      xlim(0.3, 0.7)
+      labs(title = paste0("Choice outcome of ", by))
+      # xlim(0.3, 0.7)
       # theme_nice()
     # return results with the plot data
     return(list(mm_results = mm_results, plot = plot_output))
