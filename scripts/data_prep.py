@@ -25,8 +25,9 @@ df = df.drop([0, 1]) # remove first two rows
 
 # %% ############################# clean data ################################
 
-# fix typos
+# fix typos and replace dashes with underscores
 df.rename(columns={'languge': 'language'}, inplace=True)
+df = rename_columns(df, 'justice-', 'justice_')
 
 # fix data types
 df['Finished'] = df['Finished'].replace(
@@ -48,10 +49,12 @@ df['ID'] = range(1, len(df) + 1)
 df['duration_min'] = df['Duration (in seconds)'] / 60
 df['duration_min'].round(3) # do I need to store it in df['dur...'] as well?
 
-# filter out incompletes
-df = df[df['DistributionChannel'] != 'preview'] # filter out previews
-df = df[df['Finished'] == True] # filter out recorded incompletes
-df = df.dropna(subset=['canton']) # filter out quota fulls
+# filter out previews
+df = df[df['DistributionChannel'] != 'preview'] 
+# filter out recorded incompletes
+df = df[df['Finished'] == True] 
+# filter out quota fulls
+df = df.dropna(subset=['canton']) 
 
 # speeders and laggards
 # calculate the 5% and 99% quantiles
@@ -63,10 +66,10 @@ df['speeder'] = df['duration_min'] < lower_threshold
 df['laggard'] = df['duration_min'] > upper_threshold 
 
 # inattentives based on justice section (exact same answer for all questions)
-just_columns = ['justice-general_1', 'justice-tax_1', 'justice-subsidy_1', 
-           'justice-general_2', 'justice-tax_2', 'justice-subsidy_2', 
-           'justice-general_3', 'justice-tax_3', 'justice-subsidy_3', 
-           'justice-general_4', 'justice-tax_4', 'justice-subsidy_4'
+just_columns = ['justice_general_1', 'justice_tax_1', 'justice_subsidy_1', 
+           'justice_general_2', 'justice_tax_2', 'justice_subsidy_2', 
+           'justice_general_3', 'justice_tax_3', 'justice_subsidy_3', 
+           'justice_general_4', 'justice_tax_4', 'justice_subsidy_4'
 ]
 attention_mask = (df[just_columns].nunique(axis=1) == 1)
 df['inattentive'] = attention_mask
@@ -215,10 +218,10 @@ df_justice = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'
 
 # justice columns dictionary
 justice_columns = {
-    'utilitarian': ['justice-general_1', 'justice-tax_1', 'justice-subsidy_1'], 
-    'egalitarian': ['justice-general_2', 'justice-tax_2', 'justice-subsidy_2'], 
-    'sufficientarian': ['justice-general_3', 'justice-tax_3', 'justice-subsidy_3'], 
-    'limitarian': ['justice-general_4', 'justice-tax_4', 'justice-subsidy_4']
+    'utilitarian': ['justice_general_1', 'justice_tax_1', 'justice_subsidy_1'], 
+    'egalitarian': ['justice_general_2', 'justice_tax_2', 'justice_subsidy_2'], 
+    'sufficientarian': ['justice_general_3', 'justice_tax_3', 'justice_subsidy_3'], 
+    'limitarian': ['justice_general_4', 'justice_tax_4', 'justice_subsidy_4']
 }
 
 # convert columns to numeric types
@@ -230,11 +233,6 @@ for just_columns in justice_columns.values():
 for key, just_columns in justice_columns.items():
     df[key] = df[just_columns].sum(axis=1).round(3)
 
-# # for binary scale values, append sum to df
-# for key, cjust_olumns in justice_columns.items():
-#     df_justice[key] = df_justice[just_columns].sum(axis=1)
-
-#TODO check if the principles were already added to df before
 lpa_data = df_justice[['ID', 
                        'utilitarian', 
                        'egalitarian', 
@@ -245,27 +243,44 @@ lpa_data = df_justice[['ID',
                        'inattentive']]
 lpa_data.to_csv('data/lpa_input.csv', index=False)
 
+lpa_data_full = df_justice[['ID',
+                            'justice_general_1',
+                            'justice_tax_1',
+                            'justice_subsidy_1',
+                            'justice_general_2', 
+                            'justice_tax_2',
+                            'justice_subsidy_2',
+                            'justice_general_3',
+                            'justice_tax_3',
+                            'justice_subsidy_3',
+                            'justice_general_4',
+                            'justice_tax_4',
+                            'justice_subsidy_4',
+                            'speeder',
+                            'laggard',
+                            'inattentive']]
+lpa_data_full.to_csv('data/lpa_input_full.csv', index=False)
 # now run lpa analysis
 
 # %% ################### check ICC for justice ##########################
-
+#TODO move to a separate script later
 lpa_data = df_justice[['ID', 
                        'utilitarian', 
                        'egalitarian', 
                        'sufficientarian', 
                        'limitarian', 
-                       'justice-general_1', 
-                       'justice-tax_1', 
-                       'justice-subsidy_1',
-                       'justice-general_2', 
-                       'justice-tax_2',
-                       'justice-subsidy_2',
-                       'justice-general_3',
-                       'justice-tax_3',
-                       'justice-subsidy_3',
-                       'justice-general_4',
-                       'justice-tax_4',
-                       'justice-subsidy_4',
+                       'justice_general_1', 
+                       'justice_tax_1', 
+                       'justice_subsidy_1',
+                       'justice_general_2', 
+                       'justice_tax_2',
+                       'justice_subsidy_2',
+                       'justice_general_3',
+                       'justice_tax_3',
+                       'justice_subsidy_3',
+                       'justice_general_4',
+                       'justice_tax_4',
+                       'justice_subsidy_4',
                        'speeder', 
                        'laggard', 
                        'inattentive']]
@@ -276,10 +291,10 @@ lpa_data = lpa_data[(df_justice['speeder'] == False) &
               (df_justice['inattentive'] == False)]
 
 df_long = lpa_data.melt(id_vars=['ID'], 
-                        value_vars=['justice-general_1', 'justice-tax_1', 'justice-subsidy_1',
-                                    'justice-general_2', 'justice-tax_2', 'justice-subsidy_2',
-                                    'justice-general_3', 'justice-tax_3', 'justice-subsidy_3',
-                                    'justice-general_4', 'justice-tax_4', 'justice-subsidy_4'],
+                        value_vars=['justice_general_1', 'justice_tax_1', 'justice_subsidy_1',
+                                    'justice_general_2', 'justice_tax_2', 'justice_subsidy_2',
+                                    'justice_general_3', 'justice_tax_3', 'justice_subsidy_3',
+                                    'justice_general_4', 'justice_tax_4', 'justice_subsidy_4'],
                         var_name='variable', value_name='score')
 
 # Extract set number from variable name (1, 2, 3, or 4)
