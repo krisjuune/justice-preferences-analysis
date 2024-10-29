@@ -5,7 +5,6 @@ library(forcats) # for better factorisation management
 library(arrow)
 library(broom)
 library(cregg)
-library(marginaleffects)
 library(survey)
 library(broom.helpers)
 library(parameters)

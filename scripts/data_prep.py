@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np 
 import plotly.express as px
-import pingouin as pg
 from functions.data_assist import apply_mapping, rename_columns
 
 #%% reset working directory
@@ -46,8 +45,7 @@ for col in columns_to_num:
 
 # add column for IDs and duration in min
 df['ID'] = range(1, len(df) + 1)
-df['duration_min'] = df['Duration (in seconds)'] / 60
-df['duration_min'].round(3) # do I need to store it in df['dur...'] as well?
+df['duration_min'] = (df['Duration (in seconds)'] / 60).round(3)
 
 # filter out previews
 df = df[df['DistributionChannel'] != 'preview'] 
@@ -110,7 +108,7 @@ rating_values = ['Stark dagegen',
                  'Eher dafür',
                  'Dafür',
                  'Stark dafür']
-rating_scale = np.array(list(zip(rating_values, binary_values)))
+rating_scale = np.array(list(zip(rating_values, numerical_values_neg)))
 likert_dict = {**dict(rating_scale)}
 df = apply_mapping(df, likert_dict, column_pattern=['justice', 'rating'])
 
@@ -241,6 +239,7 @@ lpa_data = df_justice[['ID',
                        'speeder', 
                        'laggard', 
                        'inattentive']]
+
 lpa_data.to_csv('data/lpa_input.csv', index=False)
 
 lpa_data_full = df_justice[['ID',
@@ -259,56 +258,9 @@ lpa_data_full = df_justice[['ID',
                             'speeder',
                             'laggard',
                             'inattentive']]
+
 lpa_data_full.to_csv('data/lpa_input_full.csv', index=False)
 # now run lpa analysis
-
-# %% ################### check ICC for justice ##########################
-#TODO move to a separate script later
-lpa_data = df_justice[['ID', 
-                       'utilitarian', 
-                       'egalitarian', 
-                       'sufficientarian', 
-                       'limitarian', 
-                       'justice_general_1', 
-                       'justice_tax_1', 
-                       'justice_subsidy_1',
-                       'justice_general_2', 
-                       'justice_tax_2',
-                       'justice_subsidy_2',
-                       'justice_general_3',
-                       'justice_tax_3',
-                       'justice_subsidy_3',
-                       'justice_general_4',
-                       'justice_tax_4',
-                       'justice_subsidy_4',
-                       'speeder', 
-                       'laggard', 
-                       'inattentive']]
-
-
-lpa_data = lpa_data[(df_justice['speeder'] == False) & 
-              (df_justice['laggard'] == False) & 
-              (df_justice['inattentive'] == False)]
-
-df_long = lpa_data.melt(id_vars=['ID'], 
-                        value_vars=['justice_general_1', 'justice_tax_1', 'justice_subsidy_1',
-                                    'justice_general_2', 'justice_tax_2', 'justice_subsidy_2',
-                                    'justice_general_3', 'justice_tax_3', 'justice_subsidy_3',
-                                    'justice_general_4', 'justice_tax_4', 'justice_subsidy_4'],
-                        var_name='variable', value_name='score')
-
-# Extract set number from variable name (1, 2, 3, or 4)
-df_long['principle'] = df_long['variable'].str.extract(r'(\d+)')
-
-icc_results = pg.intraclass_corr(data=df_long, 
-                                 targets='ID', 
-                                 raters='principle', 
-                                 ratings='score')
-
-print(icc_results)
-
-# p-values are actually so small they get shown as 0.0, 
-# tested by only looking at general and subsidy
 
 # %% ######################################### check sample #################################################
 

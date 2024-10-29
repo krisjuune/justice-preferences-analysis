@@ -150,31 +150,68 @@ translate_dict_pv = {
 conjoint_dict = translation_dict_heat | translate_dict_pv
 df = apply_mapping(df, conjoint_dict, column_pattern='table')
 
+# simplify attribute levels
+simple_dict_pv = {
+    # target mix
+    'More hydro': 'hydro',
+    'More solar': 'solar',
+    'More wind': 'wind',
+
+    # rooftop pv requirements
+    'No obligation': 'none',
+    'New public and commercial buildings': 'new-non-residential',
+    'New and existing public and commercial buildings': 'all-non-residential',
+    'All new buildings': 'all-new',
+    'All new and existing buildings': 'all',
+
+    # biodiversity tradeoffs
+    'No trade-offs': 'none',
+    'Alpine regions': 'alpine',
+    'Agricultural areas': 'agricultural',
+    'Forests': 'forests',
+    'Rivers': 'rivers',
+    'Lakes': 'lakes',
+
+    # cantonal distribution
+    'No agreed distribution': 'none',
+    'Potential-based': 'potential-based',
+    'Equal per person': 'equal-pp', 
+    'Minimum limit': 'min-limit',
+    'Maximum limit': 'max-limit',
+}
+
+simple_dict_heat = {
+    # ban
+    'No ban': 'none',
+    'Ban on new installations': 'new',
+    'Ban and fossil heating replacement': 'all',
+
+    # heatpump
+    'Subsidy': 'subsidy',
+    'Governmental lease': 'lease',
+    'Subscription': 'subscription',
+
+    # energyclass 
+    'New buildings must be energy efficient': 'new-only-efficient',
+    'New buildings must be energy efficient and produce renewable electricity on-site': 'new-efficient-renewable',
+    'All buildings need to be energy efficient': 'all-retrofit', 
+    'All buildings need to be energy efficient and produce renewable electricity on-site': 'all-retrofit-renewable',
+
+    # exemptions
+    'No exemptions': 'none',
+    'Low-income households are exempted': 'low',
+    'Low and middle-income households are exempted': 'low-mid'
+}
+
+simple_dict = simple_dict_heat | simple_dict_pv
+df = apply_mapping(df, simple_dict, column_pattern='table')
+
 # %% ############################# add lpa data #######################################
 
 lpa_cont = pd.read_csv('data/lpa_data.csv')
-# lpa_bin = pd.read_csv('data/lpa_data_bi.csv')
 
 just_str = ['utilitarian', 'egalitarian', 'sufficientarian', 'limitarian', 'class']
 
-# for original_str in just_str:
-#     cont_str = f'{original_str}_cont' 
-#     bin_str = f'{original_str}_bin' 
-#     lpa_cont = rename_columns(lpa_cont, original_str, cont_str)
-    # lpa_bin = rename_columns(lpa_bin, original_str, bin_str)
-
-# df = df.merge(
-#     lpa_bin[['ID', 
-#              'utilitarian_bin', 
-#              'egalitarian_bin', 
-#              'sufficientarian_bin', 
-#              'limitarian_bin', 
-#              'justice_class_bin']],
-#     on='ID',
-#     how='left'
-# )
-
-# add _cont below to columns names if uncommenting the code above for bin values too
 df = df.merge(
     lpa_cont[['ID', 
               'utilitarian', 
