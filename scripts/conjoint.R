@@ -13,7 +13,6 @@ library(grid)
 
 source("functions/r-assist.R")
 
-
 df_heat <- read.csv("data/heat-conjoint.csv")
 df_pv <- read.csv("data/pv-conjoint.csv")
 
@@ -46,7 +45,7 @@ pv_amce_choice <- amce(
 plot(heat_amce_choice)
 plot(pv_amce_choice)
 
-# the AMCEs look like the pv choice used to look like
+# and with rating data
 heat_amce_rating <- amce(
   df_heat,
   rating ~ year + tax + ban + heatpump + energyclass + exemption,
@@ -150,6 +149,8 @@ by_variables <- c("justice_class",
                   "trust")
                   # "satisfaction")
 
+use_choice <- TRUE
+
 #TODO add citizen and renting (issue with their factorisation probs)
 
 # Define the experiments
@@ -163,11 +164,14 @@ for (experiment in experiments) {
   # loop over each 'by' variable
   for (by in by_variables) {
     # save subgroup analyses for each variable
-    result <- subgroup_mm(df, 
-                          by = by, 
-                          experiment = experiment, 
-                          save_file = TRUE, 
-                          get_plot = FALSE)
+    result <- subgroup_mm(
+      df,
+      choice_indicator = use_choice,
+      by = by,
+      experiment = experiment,
+      save_file = TRUE,
+      get_plot = FALSE
+      )
     
     # print message if completed
     print(paste("Completed:", experiment, "for", by))
@@ -342,6 +346,19 @@ plot(mm_satisfaction_heat, group = "satisfaction", vline = 0.5) +
   # theme_nice() +
   labs(title = "Choice outcome") +
   xlim(0.3, 0.7)
+
+mm_justice_heat <- cj(
+  df_heat,
+  rating ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID,
+  estimate = "mm",
+  by = ~justice_class
+)
+
+#plot
+plot(mm_justice_heat, group = "justice_class", vline = 0) +
+  # theme_nice() +
+  labs(title = "Rating outcome")
 
 
 #################################### IRR ####################################

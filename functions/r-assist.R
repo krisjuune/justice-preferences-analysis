@@ -56,6 +56,14 @@ theme_nice <- function() {
 }
 
 factor_conjoint <- function(df, experiment) {
+  ### check and factorise outcome variables
+  if ("rating" %in% colnames(df)) {
+    if (!is.numeric(df$rating)) {
+      df <- df %>%
+        mutate(rating = as.numeric(rating))
+    }
+  }
+  
   ### check and factorise justice_class
   if ("justice_class" %in% colnames(df)) {
     if (!is.numeric(df$justice_class)) {
@@ -300,9 +308,9 @@ factor_conjoint <- function(df, experiment) {
         ),
         ban = factor(
           case_when(
-            ban == "No ban" ~ 0,
-            ban == "Ban on new installations" ~ 1,
-            ban == "Ban and fossil heating replacement" ~ 2,
+            ban == "none" ~ 0,
+            ban == "new" ~ 1,
+            ban == "all" ~ 2,
             TRUE ~ NA_real_
           ),
           levels = 0:2,
@@ -312,9 +320,9 @@ factor_conjoint <- function(df, experiment) {
         ),
         heatpump = factor(
           case_when(
-            heatpump == "Subsidy" ~ 0,
-            heatpump == "Governmental lease" ~ 1,
-            heatpump == "Subscription" ~ 2,
+            heatpump == "subsidy" ~ 0,
+            heatpump == "lease" ~ 1,
+            heatpump == "subscription" ~ 2,
             TRUE ~ NA_real_
           ),
           levels = 0:2,
@@ -324,10 +332,10 @@ factor_conjoint <- function(df, experiment) {
         ),
         energyclass = factor(
           case_when(
-            energyclass == "New buildings must be energy efficient" ~ 0,
-            energyclass == "New buildings must be energy efficient and produce renewable electricity on-site" ~ 1,
-            energyclass == "All buildings need to be energy efficient" ~ 2,
-            energyclass == "All buildings need to be energy efficient and produce renewable electricity on-site" ~ 3,
+            energyclass == "new-only-efficient" ~ 0,
+            energyclass == "new-efficient-renewable" ~ 1,
+            energyclass == "all-retrofit" ~ 2,
+            energyclass == "all-retrofit-renewable" ~ 3,
             TRUE ~ NA_real_
           ),
           levels = 0:3,
@@ -338,9 +346,9 @@ factor_conjoint <- function(df, experiment) {
         ),
         exemption = factor(
           case_when(
-            exemption == "No exemptions" ~ 0,
-            exemption == "Low-income households are exempted" ~ 1,
-            exemption == "Low and middle-income households are exempted" ~ 2,
+            exemption == "none" ~ 0,
+            exemption == "low" ~ 1,
+            exemption == "low-mid" ~ 2,
             TRUE ~ NA_real_
           ),
           levels = 0:2,
@@ -354,9 +362,9 @@ factor_conjoint <- function(df, experiment) {
       mutate(
         mix = factor(
           case_when(
-            mix == "More hydro" ~ 0,
-            mix == "More solar" ~ 1,
-            mix == "More wind" ~ 2,
+            mix == "hydro" ~ 0,
+            mix == "solar" ~ 1,
+            mix == "wind" ~ 2,
             TRUE ~ NA_real_
           ),
           levels = 0:2,
@@ -375,11 +383,11 @@ factor_conjoint <- function(df, experiment) {
         ),
         pv = factor(
           case_when(
-            pv == "No obligation" ~ 0,
-            pv == "New public and commercial buildings" ~ 1,
-            pv == "New and existing public and commercial buildings" ~ 2,
-            pv == "All new buildings" ~ 3,
-            pv == "All new and existing buildings" ~ 4,
+            pv == "none" ~ 0,
+            pv == "new-non-residential" ~ 1,
+            pv == "all-non-residential" ~ 2,
+            pv == "all-new" ~ 3,
+            pv == "all" ~ 4,
             TRUE ~ NA_real_
           ),
           levels = 0:4,
@@ -391,12 +399,12 @@ factor_conjoint <- function(df, experiment) {
         ),
         tradeoffs = factor(
           case_when(
-            tradeoffs == "No trade-offs" ~ 0,
-            tradeoffs == "Alpine regions" ~ 1,
-            tradeoffs == "Agricultural areas" ~ 2,
-            tradeoffs == "Forests" ~ 3,
-            tradeoffs == "Rivers" ~ 4,
-            tradeoffs == "Lakes" ~ 5,
+            tradeoffs == "none" ~ 0,
+            tradeoffs == "alpine" ~ 1,
+            tradeoffs == "agricultural" ~ 2,
+            tradeoffs == "forests" ~ 3,
+            tradeoffs == "rivers" ~ 4,
+            tradeoffs == "lakes" ~ 5,
             TRUE ~ NA_real_
           ),
           levels = 0:5,
@@ -409,11 +417,11 @@ factor_conjoint <- function(df, experiment) {
         ),
         distribution = factor(
           case_when(
-            distribution == "No agreed distribution" ~ 0,
-            distribution == "Potential-based" ~ 1,
-            distribution == "Equal per person" ~ 2,
-            distribution == "Minimum limit" ~ 3,
-            distribution == "Maximum limit" ~ 4,
+            distribution == "none" ~ 0,
+            distribution == "potential-based" ~ 1,
+            distribution == "equal-pp" ~ 2,
+            distribution == "min-limit" ~ 3,
+            distribution == "max-limit" ~ 4,
             TRUE ~ NA_real_
           ),
           levels = 0:4,
@@ -494,13 +502,23 @@ marginal_means <- function(df,
   return(list(lin_model_summary = tidy(lin_model), svyglm_model = model_pv, marginal_effects = mfx_pv, plot = p))
 }
 
-subgroup_mm <- function(df, 
+subgroup_mm <- function(df,
+                        choice_indicator=TRUE,
                         by,
                         experiment="heat", 
                         save_file=TRUE, 
                         get_plot=FALSE)
   {
   
+  if (choice_indicator == TRUE) {
+    indicator <- "Y"
+  } else if (choice_indicator == FALSE) {
+    indicator <- "rating"
+  } else {
+    stop("Error: choice_indicator must either be TRUE for using choice data (Y) or FALSE for using rating data ()")
+  }
+
+
   # get predictors per experiment
   if (experiment == "heat") {
     predictors <- c("year", "tax", "ban", "heatpump", "energyclass", "exemption")
@@ -511,7 +529,7 @@ subgroup_mm <- function(df,
   }
 
   # create the formula dynamically
-  formula <- as.formula(paste("Y ~", paste(predictors, collapse = " + ")))
+  formula <- as.formula(paste(indicator, "~", paste(predictors, collapse = " + ")))
   
   # run the conditional marginal means (cj) function
   mm_results <- cj(
