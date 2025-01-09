@@ -1,4 +1,5 @@
 import pingoin as pg
+import numpy as np
 
 # %% ################### check ICC for justice ##########################
 #TODO move to a separate script later
@@ -47,3 +48,23 @@ print(icc_results)
 
 # p-values are actually so small they get shown as 0.0, 
 # tested by only looking at general and subsidy
+
+# %% cronbach's alpha
+
+def cronbach_alpha(df):
+    # df should be a dataframe where each column is a measurement/item for a principle
+    item_scores = df.values
+    item_variances = item_scores.var(axis=0, ddof=1)
+    total_score_var = item_scores.sum(axis=1).var(ddof=1)
+    n_items = df.shape[1]
+    
+    return (n_items / (n_items - 1)) * (1 - item_variances.sum() / total_score_var)
+
+# Example usage per principle:
+alpha_results = {}
+for principle in df_long['principle'].unique():
+    # Pivot to create one column per variable (item) for each principle
+    df_pivot = df_long[df_long['principle'] == principle].pivot(index='id', columns='variable', values='score')
+    alpha_results[principle] = cronbach_alpha(df_pivot)
+
+alpha_results
