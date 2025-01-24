@@ -3,17 +3,10 @@ import numpy as np
 import plotly.express as px
 from functions.data_assist import apply_mapping, rename_columns
 
-#%% reset working directory
-import os
-print(os.getcwd())
-wd = '/Users/kristiinajoon/Documents/Projects/justice-conjoint'
-os.chdir(wd)
-
-
 
 #%% ############################# read data ##################################
 
-df = pd.read_csv('data/raw_conjoint.csv')
+df = pd.read_csv('raw_data/raw_conjoint_120624.csv')
 
 # check data 
 pd.set_option('display.max_columns', None) # displays all columns when printing parts of the df

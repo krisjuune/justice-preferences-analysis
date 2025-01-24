@@ -10,6 +10,9 @@ from matplotlib.cm import get_cmap
 df_pv = pd.read_csv('data/pv_justice_class_MMs.csv')
 df_heat = pd.read_csv('data/heat_justice_class_MMs.csv')
 
+# %% push vs pull plot
+########################### push vs pull ##############################
+
 # aggregate into push and pull attributes
 coerciveness = {
     "push": ["ban", "tax", "pv"], 
@@ -242,4 +245,121 @@ handles = [
 plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to_anchor=(1, 1))
 
 plt.show()
+
+# %% utilitarian vs general plot
+########################### utilitarian packages ########################
+
+# define util packages
+levels_util_heat = {
+    "year": "2050",
+    "tax": "100%", 
+    "tax": "75%",
+    "ban": "No ban", 
+    "heatpump": "Subsidy",
+    "exemptions": "none"
+}
+
+levels_util_pv = {
+    "imports": "30%",
+    "imports": "20%",
+    "pv": "No obligation", 
+    "tradeoffs": ["Lakes", "Rivers", "Forests", "Agriculture", "Alpine"],
+    "distribution": "No agreed cantonal production requirements"
+}
+
+# Function to classify policy packages as utilitarian or non-utilitarian
+def classify_policy(df, util_levels):
+    # Function to classify each row as Utilitarian or Non-Utilitarian
+    def is_utilitarian(row):
+        feature = row['feature']
+        level = row['level']
+        
+        if feature in util_levels:
+            expected_value = util_levels[feature]
+            if isinstance(expected_value, list):  # Handle multiple possible values
+                return 'Utilitarian' if level in expected_value else 'Non-Utilitarian'
+            else:
+                return 'Utilitarian' if level == expected_value else 'Non-Utilitarian'
+        return 'Non-Utilitarian'
+
+    # Apply classification
+    df['policy_package'] = df.apply(is_utilitarian, axis=1)
+    return df
+
+# Apply classification to heating decarbonisation data
+df_heat_classified = classify_policy(df_heat, levels_util_heat)
+df_heat_classified['experiment'] = 'Heating Decarbonisation'
+
+# Apply classification to renewable energy deployment data
+df_pv_classified = classify_policy(df_pv, levels_util_pv)
+df_pv_classified['experiment'] = 'Renewable Energy Deployment'
+
+# Combine both datasets
+df_combined = pd.concat([df_heat, df_pv], ignore_index=True)
+
+# Calculate average marginal means and standard error
+average_estimates = (
+    df_combined
+    .groupby(['BY', 'experiment', 'policy_package'])
+    .agg(
+        average_estimate=('estimate', 'mean'),
+        std_error=('estimate', lambda x: np.std(x, ddof=1) / np.sqrt(len(x)))  # Standard error calculation
+    )
+    .reset_index()
+)
+
+# Calculate confidence intervals (95% CI using 1.96 multiplier)
+average_estimates['ci_lower'] = average_estimates['average_estimate'] - 1.96 * average_estimates['std_error']
+average_estimates['ci_upper'] = average_estimates['average_estimate'] + 1.96 * average_estimates['std_error']
+
+print(average_estimates)
+
+
+# %% plot util vs non-util
+
+colors = get_cmap('viridis', 3)  # Use viridis colormap for 3 justice groups
+color_mapping = {category: colors(i) for i, category in enumerate(average_estimates['BY'].unique())}
+
+# get specified order for y axis
+average_estimates['y_label'] = average_estimates.apply(
+    lambda row: f"{row['experiment']} - {row['policy_package']}", axis=1
+)
+
+average_estimates['y_label'] = pd.Categorical(
+    average_estimates['y_label'],
+    categories=y_order, 
+    ordered=True
+)
+
+# Set up the plot
+sns.set(style="whitegrid")
+plt.figure(figsize=(10, 6))
+
+# Create scatter plot with correct y-axis order
+scatter_plot = sns.scatterplot(
+    data=average_estimates,
+    x="average_estimate",
+    y="y_label",
+    hue="BY",
+    palette=color_mapping, 
+    size=[100] * len(average_estimates),
+    sizes=(100, 100),
+    legend="full"
+)
+
+# Set axis labels
+scatter_plot.set_xlabel("Average Marginal Means")
+scatter_plot.set_ylabel("Experiment and Policy Package")
+
+# Move legend outside the plot
+plt.legend(title="Justice Profiles", 
+           loc='upper right', 
+           bbox_to_anchor=(1.2, 1), 
+           frameon=True)
+
+plt.show()
+
+#TODO add errorbars
+
+
 # %%
