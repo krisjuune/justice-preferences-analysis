@@ -6,7 +6,7 @@
 /samples
 /tests
 __pycache__/
-Qualtrics.Rproj
+init_kernel.py
 .*
 !.gitignore
 !.git/
