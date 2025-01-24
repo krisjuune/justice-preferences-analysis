@@ -246,6 +246,10 @@ plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to
 
 plt.show()
 
+
+
+
+
 # %% utilitarian vs general plot
 ########################### utilitarian packages ########################
 
@@ -312,15 +316,36 @@ average_estimates = (
 average_estimates['ci_lower'] = average_estimates['average_estimate'] - 1.96 * average_estimates['std_error']
 average_estimates['ci_upper'] = average_estimates['average_estimate'] + 1.96 * average_estimates['std_error']
 
+# Calculate variance from standard error
+average_estimates['variance'] = average_estimates['std_error'] ** 2
+
+# Compute weighted average estimate
+average_estimates = average_estimates.groupby(['BY', 'experiment', 'policy_package']).apply(
+    lambda g: pd.Series({
+        'average_estimate': np.average(g['average_estimate'], weights=1 / g['variance']),
+        'combined_variance': 1 / np.sum(1 / g['variance'])
+    })
+).reset_index()
+
+# Calculate standard deviation from combined variance
+average_estimates['combined_std_dev'] = np.sqrt(average_estimates['combined_variance'])
+
 print(average_estimates)
 
 
 # %% plot util vs non-util
 
-colors = get_cmap('viridis', 3)  # Use viridis colormap for 3 justice groups
+colors = get_cmap('viridis', 3)
 color_mapping = {category: colors(i) for i, category in enumerate(average_estimates['BY'].unique())}
 
 # get specified order for y axis
+y_order = [
+    "Heating Decarbonisation - Utilitarian", 
+    "Heating Decarbonisation - Non-Utilitarian",
+    "Renewable Energy Deployment - Utilitarian", 
+    "Renewable Energy Deployment - Non-Utilitarian"
+]
+
 average_estimates['y_label'] = average_estimates.apply(
     lambda row: f"{row['experiment']} - {row['policy_package']}", axis=1
 )
@@ -350,6 +375,17 @@ scatter_plot = sns.scatterplot(
 # Set axis labels
 scatter_plot.set_xlabel("Average Marginal Means")
 scatter_plot.set_ylabel("Experiment and Policy Package")
+
+# add errorbars
+for _, row in average_estimates.iterrows():
+    plt.errorbar(
+        x=row["average_estimate"],
+        y=row["y_label"],
+        xerr=row["combined_std_dev"],
+        fmt='o',
+        color=color_mapping[row["BY"]],
+        capsize=4
+    )
 
 # Move legend outside the plot
 plt.legend(title="Justice Profiles", 
