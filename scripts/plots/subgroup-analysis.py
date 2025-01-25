@@ -356,6 +356,13 @@ average_estimates['y_label'] = pd.Categorical(
     ordered=True
 )
 
+profile_offsets = {
+    'egalitarian': -0.15,
+    'universal': 0.0,
+    'utilitarian': 0.15
+}
+average_estimates['y_offset'] = average_estimates['BY'].map(profile_offsets)
+
 # Set up the plot
 sns.set(style="whitegrid")
 plt.figure(figsize=(10, 6))
@@ -380,22 +387,25 @@ scatter_plot.set_ylabel("Experiment and Policy Package")
 for _, row in average_estimates.iterrows():
     plt.errorbar(
         x=row["average_estimate"],
-        y=row["y_label"],
+        y=y_order.index(row["y_label"]) + row["y_offset"],  # Add offset
         xerr=row["combined_std_dev"],
         fmt='o',
         color=color_mapping[row["BY"]],
         capsize=4
     )
 
-# Move legend outside the plot
-plt.legend(title="Justice Profiles", 
-           loc='upper right', 
-           bbox_to_anchor=(1.2, 1), 
-           frameon=True)
+# bold vertical line at x = 0.5 to show support vs opposition threshold
+plt.axvline(x=0.5, color='black', linewidth=2, linestyle='--')
+
+# legend
+handles = [
+    plt.Line2D([0], [0], marker='o', color='w', label=profile, markersize=10, 
+               markerfacecolor=color_mapping[profile]) 
+    for profile in average_estimates['BY'].unique()
+]
+plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to_anchor=(1.2, 1))
+
 
 plt.show()
-
-#TODO add errorbars
-
 
 # %%
