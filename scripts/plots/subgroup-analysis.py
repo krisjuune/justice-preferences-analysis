@@ -72,65 +72,6 @@ average_estimates = (
     .rename(columns={'estimate': 'average_estimate'})
 )
 
-# %% plot average estimates per justice for push vs pull
-
-# Define custom y-axis labels
-average_estimates['y_label'] = average_estimates.apply(
-    lambda row: (
-        "Strong push policy in place" if row['policy_type'] == "push" and row['strong_level'] and not row['none_level'] else
-        "Weak push policy in place" if row['policy_type'] == "push" and not row['strong_level'] and not row['none_level'] else
-        "No push policy" if row['policy_type'] == "push" and row['none_level'] else
-        "Pull policy in place" if row['policy_type'] == "pull" and not row['none_level'] else
-        "No pull policy"
-    ),
-    axis=1
-)
-
-# Specify the custom order for the y-axis categories
-y_order = [
-    'Strong push policy in place', 
-    'Weak push policy in place',
-    'No push policy',
-    'Pull policy in place', 
-    'No pull policy'
-]
-
-colors = get_cmap('viridis', 3)
-color_mapping = {category: colors(i) for i, category in enumerate(average_estimates['BY'].unique())}
-
-# Set up the plot with Seaborn
-sns.set(style="whitegrid")
-plt.figure(figsize=(10, 6))  # Adjust figure size as needed
-
-# Create the scatter plot
-scatter_plot = sns.scatterplot(
-    data = average_estimates,
-    x = "average_estimate",
-    y = "y_label",
-    hue = "BY",
-    palette = color_mapping,  
-    size=[100] * len(average_estimates), 
-    sizes=(100, 100),
-    legend = "full"
-)
-
-# Adjust the y-ticks to the specified order
-scatter_plot.set_yticks(y_order)
-scatter_plot.set_yticklabels(y_order)
-
-# Set labels and title
-scatter_plot.set_xlabel("Average Marginal Means")
-scatter_plot.set_ylabel("")
-# plt.title("Average Estimate by Policy Type and None Level", fontsize=16)
-
-# Position the legend in the top right corner
-handles = [plt.Line2D([0], [0], marker='o', color='w', label=profile, markersize=10, markerfacecolor=color_mapping[profile]) 
-           for profile in average_estimates['BY'].unique()]
-
-plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to_anchor=(1, 1), frameon=True)
-
-# Show the plot
-plt.show()
 
 # %% get uncertainty too
 
@@ -242,7 +183,7 @@ handles = [
                markerfacecolor=color_mapping[profile]) 
     for profile in average_estimates['BY'].unique()
 ]
-plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to_anchor=(1, 1))
+plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to_anchor=(1.2, 1))
 
 plt.show()
 
@@ -361,17 +302,22 @@ profile_offsets = {
     'universal': 0.0,
     'utilitarian': 0.15
 }
+# Convert categorical y-axis labels to numeric positions and add offset
 average_estimates['y_offset'] = average_estimates['BY'].map(profile_offsets)
+average_estimates['y_numeric'] = (
+    average_estimates['y_label'].astype(str).map(lambda x: y_order.index(x))
+    + average_estimates['y_offset']
+)
 
 # Set up the plot
 sns.set(style="whitegrid")
 plt.figure(figsize=(10, 6))
 
-# Create scatter plot with correct y-axis order
+# Plot the scatterplot with adjusted y positions
 scatter_plot = sns.scatterplot(
     data=average_estimates,
     x="average_estimate",
-    y="y_label",
+    y="y_numeric",  # Use numeric y-axis with offset applied
     hue="BY",
     palette=color_mapping, 
     size=[100] * len(average_estimates),
@@ -379,11 +325,15 @@ scatter_plot = sns.scatterplot(
     legend="full"
 )
 
+# Adjust the y-axis labels back to the original categories
+scatter_plot.set_yticks(range(len(y_order)))
+scatter_plot.set_yticklabels(y_order)
+
 # Set axis labels
 scatter_plot.set_xlabel("Average Marginal Means")
 scatter_plot.set_ylabel("Experiment and Policy Package")
 
-# add errorbars
+# Apply the offset in the plot
 for _, row in average_estimates.iterrows():
     plt.errorbar(
         x=row["average_estimate"],
@@ -393,9 +343,6 @@ for _, row in average_estimates.iterrows():
         color=color_mapping[row["BY"]],
         capsize=4
     )
-
-# bold vertical line at x = 0.5 to show support vs opposition threshold
-plt.axvline(x=0.5, color='black', linewidth=2, linestyle='--')
 
 # legend
 handles = [
@@ -408,4 +355,5 @@ plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to
 
 plt.show()
 
-# %%
+# %% effect of exemptions on bans and taxes
+
