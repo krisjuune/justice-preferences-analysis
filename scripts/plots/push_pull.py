@@ -84,16 +84,38 @@ mm_combined = pd.concat([mm_heat, mm_pv], ignore_index=True)
 
 # %% get average MMs
 
-#TODO get av std error
-
 # get average MM estimates
 average_estimates = (
     mm_combined
-    .groupby(['BY', 'experiment', 'policy_type', 'none_level', 'strong_level'])['estimate']
-    .mean()
+    .groupby(['BY', 'experiment', 'policy_type', 'none_level', 'strong_level'])
+    .agg(
+        average_estimate=('estimate', 'mean'),
+        std_error=('estimate', lambda x: x.std(ddof=1) / np.sqrt(len(x)) 
+                   if len(x) > 1 
+                   else x.iloc[0])  # Take the single observation's std.error
+    )
     .reset_index()
-    .rename(columns={'estimate': 'average_estimate'})
 )
+
+# Calculate confidence intervals (95% CI using 1.96 multiplier)
+average_estimates['ci_lower'] = average_estimates['average_estimate'] - 1.96 * average_estimates['std_error']
+average_estimates['ci_upper'] = average_estimates['average_estimate'] + 1.96 * average_estimates['std_error']
+
+# Calculate variance from standard error
+average_estimates['variance'] = average_estimates['std_error'] ** 2
+
+# # Compute weighted average estimate
+# average_estimates = average_estimates.groupby(['BY', 'experiment', 'policy_type', 'none_level', 'strong_level']).apply(
+#     lambda g: pd.Series({
+#         'average_estimate': np.average(g['average_estimate'], weights=1 / g['variance']),
+#         'combined_variance': 1 / np.sum(1 / g['variance'])
+#     })
+# ).reset_index()
+
+# # Calculate standard deviation from combined variance
+# average_estimates['combined_std_dev'] = np.sqrt(average_estimates['combined_variance'])
+
+print(average_estimates)
 
 # %% define plot features
 

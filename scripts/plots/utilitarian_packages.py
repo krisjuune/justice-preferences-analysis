@@ -158,7 +158,7 @@ scatter_plot.set_yticklabels(y_order)
 scatter_plot.set_xlabel("Average Marginal Means")
 scatter_plot.set_ylabel("Experiment and Policy Package")
 
-# Apply the offset in the plot
+# Errorbars
 for _, row in average_estimates.iterrows():
     plt.errorbar(
         x=row["average_estimate"],

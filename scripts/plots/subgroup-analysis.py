@@ -248,7 +248,7 @@ average_estimates = (
     .groupby(['BY', 'experiment', 'policy_package'])
     .agg(
         average_estimate=('estimate', 'mean'),
-        std_error=('estimate', lambda x: np.std(x, ddof=1) / np.sqrt(len(x)))  # Standard error calculation
+        std_error=('estimate', lambda x: np.std(x, ddof=1) / np.sqrt(len(x)))
     )
     .reset_index()
 )
