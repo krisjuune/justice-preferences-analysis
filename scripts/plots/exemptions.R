@@ -5,9 +5,10 @@ library(readr)
 library(patchwork)
 library(here)
 
-# Exemptions
+df_plot <- read_csv(here("data", "mm_exemptions.csv")) |>
+  filter(outcome == "choice")
 
-df_plot <- read_csv(here("data", "heat_justice_class_MMs.csv")) |>
+df_plot <- df_plot |>
   filter(feature %in% c("tax", "ban")) |>
   filter(!level %in% c("25%", "75%")) |>
   mutate(
@@ -22,15 +23,6 @@ df_plot <- read_csv(here("data", "heat_justice_class_MMs.csv")) |>
         "Ban nothing", "Ban new installations", "Ban all fossil heating"
       )
     ),
-    BY = factor(
-      BY,
-      levels = c(
-        "egalitarian", "universal", "utilitarian"
-      ),
-      labels = c(
-        "Egalitarian", "Universal", "Utilitarian"
-      )
-    ),
     feature = factor(
       feature,
       levels = c(
@@ -39,43 +31,38 @@ df_plot <- read_csv(here("data", "heat_justice_class_MMs.csv")) |>
       labels = c(
         "Ban", "Tax"
       )
+    ),
+    justice_class = factor(
+      justice_class,
+      levels = c(
+        "egalitarian", "universal", "utilitarian"
+      ),
+      labels = c(
+        "Egalitarian", "Universal", "Utilitarian"
+      )
+    ),
+    exemption = factor(
+      exemption,
+      levels = c(
+        "No exemptions",
+        "Low-income exempted",
+        "Low- and middle-income exempted"
+      ),
+      labels = c(
+        "No exemptions",
+        "Low-income exempted",
+        "Low- and middle-income exempted"
+      )
     )
   )
-
-dummy_df1 <- df_plot |>
-  mutate(
-    estimate = estimate * .9,
-    std.error = std.error * 2,
-    exemptions = "No exemptions",
-  )
-
-dummy_df2 <- df_plot |>
-  mutate(
-    std.error = std.error * 2,
-    exemptions = "Low income exempted"
-  )
-
-dummy_df3 <- df_plot |>
-  mutate(
-    estimate = estimate * 1.1,
-    std.error = std.error * 2,
-    exemptions = "Low and mid income exempted"
-  )
-
-df_plot <- bind_rows(dummy_df1, dummy_df2, dummy_df3) |>
-  mutate(exemptions = factor(
-    exemptions,
-    levels = c("No exemptions", "Low income exempted", "Low and mid income exempted")
-    ))
-
 
 plot_exemptions <- function(data) {
   data |>
     ggplot(aes(
       x = estimate,
       y = level,
-      colour = BY,
-      shape = BY
+      colour = justice_class,
+      shape = justice_class
     )) +
     geom_point(
       size = 2,
@@ -90,7 +77,7 @@ plot_exemptions <- function(data) {
       position = position_dodge(width = 0.5)
     ) +
     facet_wrap(
-      vars(exemptions)
+      vars(exemption)
     ) +
     geom_vline(
       xintercept = .5,
@@ -143,7 +130,7 @@ theme_patchwork_justice <- function(plot) {
 mm_exemptions_plot <- (exemption_ban_plot / exemption_tax_plot) +
   plot_layout(guides = "collect", axis_titles = "collect") +
   plot_annotation(tag_levels = "A") &
-  scale_x_continuous(limits = c(.28, .72)) &
+  scale_x_continuous(limits = c(.23, .77)) &
   theme_classic() &
   theme(
     legend.position = "right",
@@ -157,5 +144,3 @@ ggsave(
   here("output", "mm_exemptions_plot.png"),
   height = 7, width = 11
 )
-
-

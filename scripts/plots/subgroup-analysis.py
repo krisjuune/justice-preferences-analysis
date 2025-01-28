@@ -355,5 +355,3 @@ plt.legend(handles=handles, title="Justice Profiles", loc='upper right', bbox_to
 
 plt.show()
 
-# %% effect of exemptions on bans and taxes
-

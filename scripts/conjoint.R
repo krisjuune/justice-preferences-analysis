@@ -1,7 +1,7 @@
 library(tidyverse)
 library(dplyr)
-library(purrr) # for functional programming
-library(forcats) # for better factorisation management
+library(purrr)
+library(forcats)
 library(arrow)
 library(broom)
 library(cregg)
