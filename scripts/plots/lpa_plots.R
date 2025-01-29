@@ -11,7 +11,7 @@ lpa_data <- read_csv(here("data", "lpa_data.csv"))[, -1] |>
     justice_class = factor(
         justice_class,
         levels = c(
-            "1", "3", "2"
+            "2", "1", "3"
         ), 
         labels = c(
             "egalitarian", "universal", "utilitarian"
@@ -49,34 +49,43 @@ plot_profile_principles <- ggplot(mean_values_long,
   geom_line(size = 1.5) +
   geom_point(size = 3) +
   geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0.2, size = 0.8) +
-  labs(title = "Profiles across justice principles",
-       y = "Mean Score",
+  labs(title = "Mean scores for justice principles",
        color = "Latent profile") +
   theme_classic() +
-  theme(
-    axis.title.x = element_blank()
-  ) +
   scale_color_viridis_d(end = .8)
 
 # get nr of people in each justice group
 plot_profile_counts <- ggplot(lpa_data,
-                              aes(x = factor(justice_class),
-                                  fill = factor(justice_class))) +
-  geom_bar() +
-  labs(title = "Profile sizes",
-       y = "Count") +
+                              aes(x = factor(justice_class), fill = factor(justice_class))) +
+  geom_bar(aes(y = after_stat(count / sum(count)))) +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Relative profile sizes") +
   theme_classic() +
   theme(
-    legend.position = "none",
-    axis.title.x = element_blank()
+    legend.position = "none"
   ) +
   scale_fill_viridis_d(end = .8)
 
-
-plot_profile_principles
 plot_profile_counts
+plot_profile_principles
 
-plot_profile_counts + plot_profile_principles + plot_layout(ncol = 2)
+lpa_results <- plot_profile_counts +
+  plot_profile_principles +
+  plot_layout(ncol = 2) &
+  theme(
+    text = element_text(size = 14),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+lpa_results
+
+ggsave(
+  here("output", "lpa_results.png"), 
+  plot = lpa_results, 
+  height = 5, width = 11
+)
+
 
 # Plotting the profiles per participant
 # Pivot the lpa_data into long format for plotting each participant
