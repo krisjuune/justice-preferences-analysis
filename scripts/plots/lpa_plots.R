@@ -67,7 +67,8 @@ plot_profile_principles <- ggplot(mean_values_long,
         size = 0.6,
   position = position_dodge(width = 0.2)) +
   labs(title = "Mean scores for justice principles",
-       color = "Latent profile", shape = "Latent profile") +
+       color = NULL,
+       shape = NULL) +
   theme_classic() +
   scale_color_viridis_d(end = .8)
 
@@ -103,6 +104,7 @@ ggsave(
   height = 5, width = 11
 )
 
+justice_class_proportions <- prop.table(table(lpa_data$justice_class))
 
 # Plotting the profiles per participant
 # Pivot the lpa_data into long format for plotting each participant
