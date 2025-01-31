@@ -1,9 +1,10 @@
-library(ggplot_profile_principles)
+library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(readr)
 library(patchwork)
 library(here)
+
 
 lpa_data <- read_csv(here("data", "lpa_data.csv"))[, -1] |>
   filter(!is.na(justice_class)) |>
@@ -14,9 +15,19 @@ lpa_data <- read_csv(here("data", "lpa_data.csv"))[, -1] |>
             "2", "1", "3"
         ), 
         labels = c(
-            "egalitarian", "universal", "utilitarian"
+            "Egalitarian", "Universal", "Utilitarian"
+        )
+    ),
+    principle = factor(
+        principle,
+        levels = c(
+            "egalitarian", "limitarian", "suffcientarian", "utilitarian"
+        ), 
+        labels = c(
+            "Equal outcome", "Limitarian", "Suffcientarian", "Utilitarian"
         )
     )
+
   )
 
 # calculate scores for each principle
@@ -45,19 +56,26 @@ plot_profile_principles <- ggplot(mean_values_long,
                                   aes(x = variable,
                                       y = value,
                                       color = factor(justice_class),
-                                      group = factor(justice_class))) +
-  geom_line(size = 1.5) +
-  geom_point(size = 3) +
-  geom_errorbar(aes(ymin = ymin, ymax = ymax), width = 0.2, size = 0.8) +
+                                      group = factor(justice_class),
+                                      shape = factor(justice_class))) +
+  geom_line(size = .5, alpha = .3, position = position_dodge(width = 0.2)) +
+  geom_point(size = 3, position = position_dodge(width = 0.2)) +
+  geom_errorbar(
+    aes(
+        ymin = ymin,
+        ymax = ymax),
+        width = 0.2,
+        size = 0.6,
+  position = position_dodge(width = 0.2)) +
   labs(title = "Mean scores for justice principles",
-       color = "Latent profile") +
+       color = "Latent profile", shape = "Latent profile") +
   theme_classic() +
   scale_color_viridis_d(end = .8)
 
 # get nr of people in each justice group
 plot_profile_counts <- ggplot(lpa_data,
-                              aes(x = factor(justice_class), fill = factor(justice_class))) +
-  geom_bar(aes(y = after_stat(count / sum(count)))) +
+                              aes(x = justice_class, fill = justice_class)) +
+  geom_bar(aes(y = after_stat(count / sum(count))), alpha = .8, width = .65) +
   scale_y_continuous(labels = scales::percent) +
   labs(title = "Relative profile sizes") +
   theme_classic() +
@@ -71,7 +89,7 @@ plot_profile_principles
 
 lpa_results <- plot_profile_counts +
   plot_profile_principles +
-  plot_layout(ncol = 2) &
+  plot_layout(ncol = 2, widths = c(1, 2)) &
   theme(
     text = element_text(size = 14),
     axis.title.x = element_blank(),
