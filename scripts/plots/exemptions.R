@@ -114,20 +114,7 @@ theme_patchwork_justice <- function(plot) {
     strip.background = element_rect(size = 0),
     strip.text.x = element_text(size = 11, face = "bold")
   )
-  # ggplot2::theme(
-  #   text = element_text(size = 14),
-  #   strip.background = element_blank(),
-  #   strip.text.x = element_text(size = 12.5, face = "bold"),
-  #   panel.border = element_blank(),
-  #   panel.background = element_blank(),
-  #   panel.grid.major = element_blank(),
-  #   panel.grid.minor = element_blank(),
-  #   axis.line = element_line(colour = "black", linewidth = rel(1)),
-  #   legend.text = element_text(size = 10),
-  #   legend.background = element_blank(),
-  # )
 }
-
 
 mm_exemptions_plot <- (exemption_ban_plot / exemption_tax_plot) +
   plot_layout(guides = "collect", axis_titles = "collect") +

@@ -38,11 +38,20 @@ df_pv <- factor_conjoint(df_pv, experiment = "pv")
 df_heat <- df_heat |>
   mutate(util_pack = case_when(
     tax %in% c("100%", "75%") &
-    #   year == "2050" &
       ban == "No ban" &
       exemption == "No exemptions"
     ~ "utilitarian",
-    TRUE ~ "non-utilitarian"
+    exemption %in% c(
+      "Low-income exempted",
+      "Low- and middle-income exempted"
+    ) &
+      ban %in% c(
+        "Ban new installations",
+        "Ban and replace fossil heating"
+      ) &
+      tax %in% c("25%", "0%")
+    ~ "egalitarian",
+    TRUE ~ "other"
   )
   ) |>
   mutate(
@@ -50,11 +59,13 @@ df_heat <- df_heat |>
       util_pack,
       levels = c(
         "utilitarian",
-        "non-utilitarian"
+        "egalitarian",
+        "other"
       ),
       labels = c(
-        "Utilitarian package",
-        "Other package"
+        "Utilitarian packages",
+        "Egalitarian packages",
+        "Other packages"
       )
     )
   )
@@ -62,11 +73,14 @@ df_heat <- df_heat |>
 df_pv <- df_pv |>
   mutate(util_pack = case_when(
     pv == "No rooftop PV obligation" &
-      imports != "0%" &
-      tradeoffs != "No tradeoffs" &
+      tradeoffs != "No biodiversity trade-offs" &
       distribution == "No agreed cantonal production requirements"
     ~ "utilitarian",
-    TRUE ~ "non-utilitarian"
+    pv != "No rooftop PV obligation" &
+      tradeoffs == "No biodiversity trade-offs" &
+      distribution != "No agreed cantonal production requirements"
+    ~ "egalitarian",
+    TRUE ~ "other"
   )
   ) |>
   mutate(
@@ -74,11 +88,13 @@ df_pv <- df_pv |>
       util_pack,
       levels = c(
         "utilitarian",
-        "non-utilitarian"
+        "egalitarian",
+        "other"
       ),
       labels = c(
-        "Utilitarian package",
-        "Other package"
+        "Utilitarian packages",
+        "Egalitarian packages",
+        "Other packages"
       )
     )
   )
@@ -88,7 +104,7 @@ df_heat |>
 df_pv |>
   count(util_pack)
 
-# util packages are about 3-4% of total packages
+# util packages are about 4-5% of total packages
 
 # get MMs
 mm_heat_util_pack_rating <- cj(
