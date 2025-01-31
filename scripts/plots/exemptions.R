@@ -56,6 +56,8 @@ df_plot <- df_plot |>
     )
   )
 
+#TODO use ci instead of std error for errorbars (multiply by 1.96)
+
 plot_exemptions <- function(data) {
   data |>
     ggplot(aes(

@@ -17,17 +17,7 @@ lpa_data <- read_csv(here("data", "lpa_data.csv"))[, -1] |>
         labels = c(
             "Egalitarian", "Universal", "Utilitarian"
         )
-    ),
-    principle = factor(
-        principle,
-        levels = c(
-            "egalitarian", "limitarian", "suffcientarian", "utilitarian"
-        ), 
-        labels = c(
-            "Equal outcome", "Limitarian", "Suffcientarian", "Utilitarian"
-        )
     )
-
   )
 
 # calculate scores for each principle
@@ -42,18 +32,27 @@ mean_values <- lpa_data %>%
 
 mean_values_long <- mean_values %>%
   pivot_longer(cols = utilitarian:limitarian,
-               names_to = "variable",
+               names_to = "principle",
                values_to = "value")
 
 mean_values_long <- mean_values_long %>%
   mutate(
     ymin = value - 0.95,
-    ymax = value + 0.95
+    ymax = value + 0.95,
+    principle = factor(
+        principle,
+        levels = c(
+            "egalitarian", "limitarian", "sufficientarian", "utilitarian"
+        ), 
+        labels = c(
+            "Equal outcomes", "Limitarian", "Sufficientarian", "Utilitarian"
+        )
+    )
   )
 
 # Plot principles on x-axis and latent profiles as colors in the legend
 plot_profile_principles <- ggplot(mean_values_long,
-                                  aes(x = variable,
+                                  aes(x = principle,
                                       y = value,
                                       color = factor(justice_class),
                                       group = factor(justice_class),
