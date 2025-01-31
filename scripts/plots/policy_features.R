@@ -31,6 +31,15 @@ df_push <- read_csv(here("data", "mm_stringency.csv")) |>
         "Renewable energy scale-up",
         "Heating sector decarbonisation"
       )
+    ),
+    justice_class = factor(
+      justice_class,
+      levels = c(
+        "egalitarian", "universal", "utilitarian"
+      ),
+      labels = c(
+        "Egalitarian", "Universal", "Utilitarian"
+      )
     )
   )
 
@@ -59,6 +68,15 @@ df_util <- read_csv(here("data", "mm_util_packages.csv")) |>
       labels = c(
         "Renewable energy scale-up",
         "Heating sector decarbonisation"
+      )
+    ),
+    justice_class = factor(
+      justice_class,
+      levels = c(
+        "egalitarian", "universal", "utilitarian"
+      ),
+      labels = c(
+        "Egalitarian", "Universal", "Utilitarian"
       )
     )
   )
@@ -122,5 +140,7 @@ mm_policy_packages_plot <- (push_plot / util_plot) +
 ggsave(
   plot = mm_policy_packages_plot,
   here("output", "mm_policy_packages_plot.png"),
-  height = 7, width = 11
+  height = 6, width = 9
 )
+
+mm_policy_packages_plot
