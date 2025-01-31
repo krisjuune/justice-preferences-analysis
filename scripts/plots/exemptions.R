@@ -131,5 +131,5 @@ mm_exemptions_plot <- (exemption_ban_plot / exemption_tax_plot) +
 ggsave(
   plot = mm_exemptions_plot,
   here("output", "mm_exemptions_plot.png"),
-  height = 7, width = 11
+  height = 5, width = 9
 )
