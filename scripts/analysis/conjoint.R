@@ -62,79 +62,25 @@ pv_amce_rating <- amce(
 plot(heat_amce_rating)
 plot(pv_amce_rating)
 
-############################## marginal means ###############################
-# write function that does this
-lin_model_pv <- lm(
+mm_pv <- cj(
+  df_pv,
   Y ~ mix + imports + pv + tradeoffs + distribution,
-  data = df_pv
+  id = ~ID,
+  estimate = "mm"
 )
 
-tidy(lin_model_pv)
-
-svydesign_pv <- svydesign(
-  ids = df_pv$ID,
-  weights = 1,
-  data = df_pv
+mm_heat <- cj(
+  df_heat,
+  Y ~ year + tax + ban + heatpump + energyclass + exemption,
+  id = ~ID,
+  estimate = "mm"
 )
 
-model_pv <- svyglm(
-  Y ~ mix + imports + pv + tradeoffs + distribution,
-  design = svydesign_pv
-)
+plot(mm_pv)
+plot(mm_heat)
 
-#TODO think about weights
-mfx_pv <- model_pv %>%
-  avg_slopes(newdata = "mean") 
-
-#TODO save output to file, so that plots can be made in Python in the end
-
-
-plot_data_manual <- model_pv %>%
-  tidy_and_attach() %>%
-  tidy_add_reference_rows() %>%
-  tidy_add_estimate_to_reference_rows() %>%
-  filter(term != "(Intercept)")
-
-ggplot(
-  plot_data_manual,
-  aes(x = estimate, y = term)
-) +
-  geom_vline(xintercept = 0) +
-  geom_pointrange(aes(xmin = conf.low, xmax = conf.high))
-
-
-# plot_data_manual <- model_pv %>%
-#   tidy_and_attach() %>%
-#   tidy_add_reference_rows() %>%
-#   tidy_add_estimate_to_reference_rows() %>%
-#   filter(term != "(Intercept)") %>%
-#   mutate(term_nice = str_remove(term, variable)) %>%
-#   left_join(variable_lookup, by = join_by(variable)) %>% # make variable lookup
-#   mutate(across(c(term_nice, variable_nice), ~fct_inorder(.))) # make lookup
-# 
-# ggplot(
-#   plot_data_manual,
-#   aes(x = estimate, y = term_nice, color = variable_nice)
-# ) +
-#   geom_vline(xintercept = 0) +
-#   geom_pointrange(aes(xmin = conf.low, xmax = conf.high)) +
-#   scale_x_continuous(labels = label_pp) +
-#   guides(color = "none") +
-#   labs(
-#     x = "Percentage point change in probability of candidate selection",
-#     y = NULL,
-#     title = "AMCEs plotted with tidy_add_reference_rows()"
-#   ) +
-#   # Automatically resize each facet height with ggforce::facet_col()
-#   facet_col(facets = "variable_nice", scales = "free_y", space = "free")
-
-response_var_pv <- "Y"
-predictors_pv <- c("mix", "imports", "pv", "tradeoffs", "distribution")
-results_pv <- marginal_means(df_pv, response_var_pv, predictors_pv, output_file = "data/pv_MMs.csv")
-
-response_var_heat <- "Y"
-predictors_heat <- c("year", "tax", "ban", "heatpump", "energyclass", "exemption")
-results_heat <- marginal_means(df_heat, response_var_heat, predictors_heat, output_file = "data/heat_MMs.csv")
+write_csv(mm_pv, here("data", "mm_pv.csv"))
+write_csv(mm_heat, here("data", "mm_heat.csv"))
 
 ############################### subgroup MMs ################################
 

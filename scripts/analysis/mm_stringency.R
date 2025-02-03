@@ -21,9 +21,9 @@ df_pv <- factor_conjoint(df_pv, experiment = "pv")
 df_heat <- df_heat |>
   mutate(push = case_when(
     ban == "Ban and replace fossil heating" |
-      tax %in% c("100%", "75%") ~ "strong",
+      tax %in% c("100%", "75%", "50%") ~ "strong",
     ban == "Ban new installations" |
-      tax %in% c("50%", "25%") ~ "soft",
+      tax %in% c("25%") ~ "soft",
     ban == "No ban" | tax == "0%" ~ "none",
     TRUE ~ NA_character_
   )
@@ -107,6 +107,34 @@ mm_pv_push_choice <- cj(
   by = ~justice_class
 )
 
+mm_heat_push_rating_gen <- cj(
+  df_heat,
+  rating ~ push,
+  id = ~ID,
+  estimate = "mm"
+)
+
+mm_heat_push_choice_gen <- cj(
+  df_heat,
+  Y ~ push,
+  id = ~ID,
+  estimate = "mm"
+)
+
+mm_pv_push_rating_gen <- cj(
+  df_pv,
+  rating ~ push,
+  id = ~ID,
+  estimate = "mm"
+)
+
+mm_pv_push_choice_gen <- cj(
+  df_pv,
+  Y ~ push,
+  id = ~ID,
+  estimate = "mm"
+)
+
 # combine and save to file
 mm_heat_push_choice <- mm_heat_push_choice |>
   select(-BY) |>
@@ -135,4 +163,28 @@ mm_push_combined <- bind_rows(
   mm_pv_push_rating
 )
 
+mm_heat_push_choice_gen <- mm_heat_push_choice_gen |>
+  mutate(outcome = "choice") |>
+  mutate(experiment = "heat")
+
+mm_heat_push_rating_gen <- mm_heat_push_ratin_geng |>
+  mutate(outcome = "rating") |>
+  mutate(experiment = "heat")
+
+mm_pv_push_choice_gen <- mm_pv_push_choice_gen |>
+  mutate(outcome = "choice") |>
+  mutate(experiment = "pv")
+
+mm_pv_push_rating_gen <- mm_pv_push_rating_gen |>
+  mutate(outcome = "rating") |>
+  mutate(experiment = "pv")
+
+mm_push_combined_gen <- bind_rows(
+  mm_heat_push_choice_gen,
+  mm_heat_push_rating_gen,
+  mm_pv_push_choice_gen,
+  mm_pv_push_rating_gen
+)
+
 write_csv(mm_push_combined, here("data", "mm_stringency.csv"))
+write_csv(mm_push_combined_gen, here("data", "mm_stringency_overall.csv"))

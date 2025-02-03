@@ -89,6 +89,7 @@ plot_profile_principles
 
 lpa_results <- plot_profile_counts +
   plot_profile_principles +
+  # plot_annotation(tag_levels = "A") +
   plot_layout(
     ncol = 2,
     widths = c(1, 2.5)
@@ -102,8 +103,8 @@ lpa_results <- plot_profile_counts +
 lpa_results
 
 ggsave(
-  here("output", "lpa_results.png"), 
-  plot = lpa_results, 
+  here("output", "lpa_results.png"),
+  plot = lpa_results,
   height = 5, width = 11
 )
 
@@ -112,8 +113,8 @@ justice_class_proportions <- prop.table(table(lpa_data$justice_class))
 # Plotting the profiles per participant
 # Pivot the lpa_data into long format for plotting each participant
 participant_long <- lpa_data %>%
-  pivot_longer(cols = justice_general_1:justice_subsidy_4, 
-               names_to = "variable", 
+  pivot_longer(cols = justice_general_1:justice_subsidy_4,
+               names_to = "variable",
                values_to = "value")
 
 plot_participants <- ggplot(participant_long, aes(x = variable, y = value, group = ID, color = factor(justice_class))) +

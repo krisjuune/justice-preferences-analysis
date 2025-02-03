@@ -17,23 +17,6 @@ df_pv <- filter_respondents(df_pv)
 df_heat <- factor_conjoint(df_heat, experiment = "heat")
 df_pv <- factor_conjoint(df_pv, experiment = "pv")
 
-# levels_util_heat = {
-#     "year": "2050",
-#     "tax": "100%", 
-#     "tax": "75%",
-#     "ban": "No ban", 
-#     "heatpump": "Subsidy",
-#     "exemptions": "none"
-# }
-
-# levels_util_pv = {
-#     "imports": "30%",
-#     "imports": "20%",
-#     "pv": "No obligation", 
-#     "tradeoffs": ["Lakes", "Rivers", "Forests", "Agriculture", "Alpine"],
-#     "distribution": "No agreed cantonal production requirements"
-# }
-
 # add column utilitarian
 df_heat <- df_heat |>
   mutate(util_pack = case_when(
@@ -139,6 +122,34 @@ mm_pv_util_pack_choice <- cj(
   by = ~justice_class
 )
 
+mm_heat_util_pack_rating_gen <- cj(
+  df_heat,
+  rating ~ util_pack,
+  id = ~ID,
+  estimate = "mm"
+)
+
+mm_heat_util_pack_choice_gen <- cj(
+  df_heat,
+  Y ~ util_pack,
+  id = ~ID,
+  estimate = "mm"
+)
+
+mm_pv_util_pack_rating_gen <- cj(
+  df_pv,
+  rating ~ util_pack,
+  id = ~ID,
+  estimate = "mm"
+)
+
+mm_pv_util_pack_choice_gen <- cj(
+  df_pv,
+  Y ~ util_pack,
+  id = ~ID,
+  estimate = "mm"
+)
+
 # combine and save to file
 mm_heat_util_pack_choice <- mm_heat_util_pack_choice |>
   select(-BY) |>
@@ -167,4 +178,28 @@ mm_util_pack_combined <- bind_rows(
   mm_pv_util_pack_rating
 )
 
+mm_heat_util_pack_choice_gen <- mm_heat_util_pack_choice_gen |>
+  mutate(outcome = "choice") |>
+  mutate(experiment = "heat")
+
+mm_heat_util_pack_rating_gen <- mm_heat_util_pack_rating_gen |>
+  mutate(outcome = "rating") |>
+  mutate(experiment = "heat")
+
+mm_pv_util_pack_choice_gen <- mm_pv_util_pack_choice_gen |>
+  mutate(outcome = "choice") |>
+  mutate(experiment = "pv")
+
+mm_pv_util_pack_rating_gen <- mm_pv_util_pack_rating_gen |>
+  mutate(outcome = "rating") |>
+  mutate(experiment = "pv")
+
+mm_util_pack_combined_gen <- bind_rows(
+  mm_heat_util_pack_choice_gen,
+  mm_heat_util_pack_rating_gen,
+  mm_pv_util_pack_choice_gen,
+  mm_pv_util_pack_rating_gen
+)
+
 write_csv(mm_util_pack_combined, here("data", "mm_util_packages.csv"))
+write_csv(mm_util_pack_combined_gen, here("data", "mm_util_packages_.csv"))

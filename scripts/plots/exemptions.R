@@ -5,6 +5,8 @@ library(readr)
 library(patchwork)
 library(here)
 
+main_text_size <- 10
+
 df_plot <- read_csv(here("data", "mm_exemptions.csv")) |>
   filter(outcome == "choice")
 
@@ -110,9 +112,9 @@ theme_patchwork_justice <- function(plot) {
   theme_classic() +
   theme(
     legend.position = "right",
-    text = element_text(size = 11),
+    text = element_text(size = main_text_size),
     strip.background = element_rect(size = 0),
-    strip.text.x = element_text(size = 11, face = "bold")
+    strip.text.x = element_text(size = main_text_size, face = "bold")
   )
 }
 
@@ -123,13 +125,13 @@ mm_exemptions_plot <- (exemption_ban_plot / exemption_tax_plot) +
   theme_classic() &
   theme(
     legend.position = "right",
-    text = element_text(size = 11),
+    text = element_text(size = main_text_size),
     strip.background = element_rect(size = 0),
-    strip.text.x = element_text(size = 11, face = "bold")
+    strip.text.x = element_text(size = main_text_size, face = "bold")
   )
 
 ggsave(
   plot = mm_exemptions_plot,
   here("output", "mm_exemptions_plot.png"),
-  height = 5, width = 9
+  height = 6, width = 10
 )
