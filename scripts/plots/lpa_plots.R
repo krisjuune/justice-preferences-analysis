@@ -57,7 +57,7 @@ plot_profile_principles <- ggplot(mean_values_long,
                                       color = factor(justice_class),
                                       group = factor(justice_class),
                                       shape = factor(justice_class))) +
-  geom_line(size = .5, alpha = .3, position = position_dodge(width = 0.2)) +
+  geom_line(linewidth = .5, alpha = .3, position = position_dodge(width = 0.2)) +
   geom_point(size = 3, position = position_dodge(width = 0.2)) +
   geom_errorbar(
     aes(
@@ -66,7 +66,7 @@ plot_profile_principles <- ggplot(mean_values_long,
         width = 0.2,
         size = 0.6,
   position = position_dodge(width = 0.2)) +
-  labs(title = "Mean scores for justice principles",
+  labs(title = "B. Mean scores for justice principles",
        color = NULL,
        shape = NULL) +
   theme_classic() +
@@ -77,7 +77,7 @@ plot_profile_counts <- ggplot(lpa_data,
                               aes(x = justice_class, fill = justice_class)) +
   geom_bar(aes(y = after_stat(count / sum(count))), alpha = .8, width = .65) +
   scale_y_continuous(labels = scales::percent) +
-  labs(title = "Relative profile sizes") +
+  labs(title = "A. Relative profile sizes") +
   theme_classic() +
   theme(
     legend.position = "none"
@@ -89,7 +89,10 @@ plot_profile_principles
 
 lpa_results <- plot_profile_counts +
   plot_profile_principles +
-  plot_layout(ncol = 2, widths = c(1, 2)) &
+  plot_layout(
+    ncol = 2,
+    widths = c(1, 2.5)
+  ) &
   theme(
     text = element_text(size = 14),
     axis.title.x = element_blank(),
