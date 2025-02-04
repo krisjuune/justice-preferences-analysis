@@ -95,8 +95,8 @@ plot_policy_features <- function(data){
     ) +
     geom_errorbarh(
       aes(
-      xmax = estimate + std.error,
-      xmin = estimate - std.error
+      xmax = estimate + 1.96 * std.error,
+      xmin = estimate - 1.96 * std.error
       ),
       height = .2,
       position = position_dodge(width = 0.5)
@@ -128,7 +128,7 @@ util_plot <- df_util |>
 mm_policy_packages_plot <- (push_plot / util_plot) +
   plot_layout(guides = "collect", axis_titles = "collect") +
   plot_annotation(tag_levels = "A") &
-  scale_x_continuous(limits = c(.32, .68)) &
+  scale_x_continuous(limits = c(.28, .82)) &
   theme_classic() &
   theme(
     legend.position = "right",
