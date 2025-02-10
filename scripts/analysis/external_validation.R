@@ -41,7 +41,7 @@ df_pv_tradeoffs <- df_pv |>
   mutate(stromversorgung = case_when(
     imports == "10%" &
       pv == "New non-residential buildings" &
-      tradeoffs %in% c("No tradeoffs", "Forests", "Alpine regions")
+      tradeoffs %in% c("No tradeoffs", "Alpine regions")
     ~ "stromversorgung",
     TRUE ~ "other"
   )
@@ -66,9 +66,19 @@ support_pct_mix <- df_pv_mix |>
   summarize(support = mean(rating > 0) * 100) |>
   pull(support)
 
+chosen_pct_mix <- df_pv_mix |>
+  filter(stromversorgung == "Stromversorgung packages") |>
+  summarize(support = mean(Y == 1) * 100) |>
+  pull(support)
+
 support_pct_tradeoffs <- df_pv_tradeoffs |>
   filter(stromversorgung == "Stromversorgung packages") |>
   summarize(support = mean(rating > 0) * 100) |>
+  pull(support)
+
+chosen_pct_tradeoffs <- df_pv_mix |>
+  filter(stromversorgung == "Stromversorgung packages") |>
+  summarize(support = mean(Y == 1) * 100) |>
   pull(support)
 
 # get MMs
@@ -136,10 +146,11 @@ mm_validation_combined <- bind_rows(
 ) |>
   mutate(
     support_pct = case_when(
-      outcome == "choice" ~ NA_real_,
       level == "Other packages" ~ NA_real_,
-      characteristic == "targetmix" ~ support_pct_mix,
-      characteristic == "tradeoffs" ~ support_pct_tradeoffs
+      characteristic == "targetmix" & outcome == "rating" ~ support_pct_mix,
+      characteristic == "targetmix" & outcome == "choice" ~ chosen_pct_mix,
+      characteristic == "tradeoffs" & outcome == "rating" ~ support_pct_tradeoffs,
+      characteristic == "tradeoffs" & outcome == "choice" ~ chosen_pct_tradeoffs,
     )
   )
 
