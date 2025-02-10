@@ -58,15 +58,13 @@ df_plot <- df_plot |>
     )
   )
 
-#TODO use ci instead of std error for errorbars (multiply by 1.96)
-
 plot_exemptions <- function(data) {
   data |>
     ggplot(aes(
       x = estimate,
       y = level,
       colour = justice_class,
-      shape = justice_class
+      shape = exemption
     )) +
     geom_point(
       size = 2,
@@ -74,28 +72,29 @@ plot_exemptions <- function(data) {
     ) +
     geom_errorbarh(
       aes(
-        xmax = estimate + std.error,
-        xmin = estimate - std.error
+        xmax = upper,
+        xmin = lower
       ),
       height = .2,
       position = position_dodge(width = 0.5)
     ) +
     facet_wrap(
-      vars(exemption)
+      vars(justice_class)
     ) +
     geom_vline(
       xintercept = .5,
       linetype = 2,
       colour = "gray40",
-      size = .3
+      linewidth = .3
     ) +
     scale_color_viridis_d(end = .8) +
     labs(
       colour = NULL,
-      shape = NULL,
+      shape = "Exemptions design across justice profiles",
       y = NULL,
       x = "Marginal means"
-    )
+    ) + 
+    guides(color = "none")
 }
 
 exemption_ban_plot <- df_plot |>
@@ -121,7 +120,7 @@ theme_patchwork_justice <- function(plot) {
 mm_exemptions_plot <- (exemption_ban_plot / exemption_tax_plot) +
   plot_layout(guides = "collect", axis_titles = "collect") +
   plot_annotation(tag_levels = "A") &
-  scale_x_continuous(limits = c(.23, .77)) &
+  scale_x_continuous(limits = c(.19, .81)) &
   theme_classic() &
   theme(
     legend.position = "right",
