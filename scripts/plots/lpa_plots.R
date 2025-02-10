@@ -161,38 +161,6 @@ plot_participant_profiles <- function(data) {
   plot
 }
 
-# violin plot of scores across principles and justice profiles
-# fix with https://www.cedricscherer.com/2021/06/06/visualizing-distributions-with-raincloud-plots-and-how-to-create-them-with-ggplot2/
-plot_violin_principles <- function(data) {
-  ggplot(
-    data,
-    aes(
-      x = principle,
-      y = value,
-      colour = justice_class,
-      fill = justice_class
-    )
-  ) +
-    geom_violin(trim = FALSE) +
-    stat_summary(
-      fun.data = "mean_sdl",
-      fun.args = list(mult = 1),
-      # geom = "crossbar",
-      # width = 0.2
-      geom = "pointrange",
-      color = "white"
-    ) +
-    facet_wrap(~justice_class) +
-    scale_color_viridis_d(end = .8) +
-    scale_fill_viridis_d(end = .8) +
-    theme_classic() +
-    theme(
-      legend.title = element_blank(),
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank()
-    )
-}
-
 # create raincloud plot
 plot_raincloud <- lpa_data |>
   pivot_participant_profiles_long() |>
@@ -252,10 +220,6 @@ plot_participants <- lpa_data |>
   pivot_participant_profiles_long() |>
   plot_participant_profiles()
 
-plot_violin <- lpa_data |>
-  pivot_participant_profiles_long() |>
-  plot_violin_principles()
-
 # save stuff
 ggsave(
   here("output", "lpa_results.png"),
@@ -267,12 +231,6 @@ ggsave(
   here("output", "lpa_participant_profiles.png"),
   plot = plot_participants,
   height = 7, width = 9
-)
-
-ggsave(
-  here("output", "lpa_violin_plot.png"),
-  plot = plot_violin,
-  height = 7, width = 11
 )
 
 ggsave(
