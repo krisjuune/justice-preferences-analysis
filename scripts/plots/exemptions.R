@@ -5,10 +5,10 @@ library(readr)
 library(patchwork)
 library(here)
 
-main_text_size <- 10
-
 df_plot <- read_csv(here("data", "mm_exemptions.csv")) |>
   filter(outcome == "choice")
+
+main_text_size <- 10
 
 df_plot <- df_plot |>
   filter(feature %in% c("tax", "ban")) |>
