@@ -8,7 +8,10 @@ library(patchwork)
 library(here)
 library(scales)
 
-lpa_data <- read_csv(here("data", "lpa_data.csv"))[, -1] |>
+lpa_data <- read_csv(
+  here("data", "lpa_data.csv"),
+  show_col_types = FALSE
+)[, -1] |>
   filter(!is.na(justice_class)) |>
   mutate(
     justice_class = factor(
@@ -22,8 +25,24 @@ lpa_data <- read_csv(here("data", "lpa_data.csv"))[, -1] |>
     )
   )
 
-# get proportion table
+# get proportion table and median scores
 justice_class_proportions <- as.list(prop.table(table(lpa_data$justice_class)))
+principles_summary <- lpa_data |>
+  summarise(across(c(utilitarian, egalitarian, sufficientarian, limitarian), list(
+      Median = median,
+      Mean = mean,
+      SD = sd,
+      Support = ~ mean(. > 0) * 100
+    ), .names = "{.col}_{.fn}")) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = c("Column", "Statistic"),
+    names_sep = "_"
+  ) |>
+  pivot_wider(
+    names_from = "Statistic",
+    values_from = "value"
+  )
 
 plot_lpa_results <- function(data) {
   mean_values <- data |>
@@ -242,4 +261,9 @@ ggsave(
 write_csv(
   as_tibble(justice_class_proportions),
   here("data", "lpa_proportions.csv")
+)
+
+write_csv(
+  principles_summary,
+  here("data", "lpa_principle_support.csv")
 )
