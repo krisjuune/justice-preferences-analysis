@@ -5,7 +5,10 @@ library(readr)
 library(patchwork)
 library(here)
 
-df_push <- read_csv(here("data", "mm_stringency.csv")) |>
+df_push <- read_csv(
+  here("data", "mm_stringency.csv"),
+  show_col_types = FALSE
+) |>
   filter(outcome == "choice") |>
   mutate(
     level = factor(
@@ -43,7 +46,10 @@ df_push <- read_csv(here("data", "mm_stringency.csv")) |>
     )
   )
 
-df_util <- read_csv(here("data", "mm_util_packages.csv")) |>
+df_util <- read_csv(
+  here("data", "mm_util_packages.csv"),
+  show_col_types = FALSE
+) |>
   filter(outcome == "choice") |>
   mutate(
     level = factor(
@@ -79,7 +85,8 @@ df_util <- read_csv(here("data", "mm_util_packages.csv")) |>
         "Egalitarian", "Universal", "Utilitarian"
       )
     )
-  )
+  ) |>
+  filter(level %in% c("Utilitarian packages", "Egalitarian packages"))
 
 
 plot_policy_features <- function(data){
@@ -90,13 +97,13 @@ plot_policy_features <- function(data){
            colour = justice_class
          )) +
     geom_point(
-      size = 3,
+      size = 2,
       position = position_dodge(width = 0.5)
     ) +
     geom_errorbarh(
       aes(
-      xmax = estimate + 1.96 * std.error,
-      xmin = estimate - 1.96 * std.error
+      xmax = upper,
+      xmin = lower
       ),
       height = .2,
       position = position_dodge(width = 0.5)
@@ -112,35 +119,36 @@ plot_policy_features <- function(data){
     ) +
     scale_color_viridis_d(end = .8) +
     labs(
-        colour = NULL,
-        shape = NULL,
-        y = NULL,
-        x = "Marginal means"
-      )
+      colour = NULL,
+      shape = NULL,
+      y = NULL,
+      x = "Marginal means"
+    ) +
+    theme_classic() +
+    theme(
+      legend.position = "right",
+      text = element_text(size = 11),
+      strip.background = element_rect(size = 0),
+      strip.text.x = element_text(size = 11, face = "bold")
+    )
 }
 
 push_plot <- df_push |>
-  plot_policy_features()
+  plot_policy_features() +
+  scale_x_continuous(limits = c(.3, .7))
 
 util_plot <- df_util |>
-  plot_policy_features()
-
-mm_policy_packages_plot <- (push_plot / util_plot) +
-  plot_layout(guides = "collect", axis_titles = "collect") +
-  plot_annotation(tag_levels = "A") &
-  scale_x_continuous(limits = c(.28, .82)) &
-  theme_classic() &
-  theme(
-    legend.position = "right",
-    text = element_text(size = 11),
-    strip.background = element_rect(size = 0),
-    strip.text.x = element_text(size = 11, face = "bold")
-  )
+  plot_policy_features() +
+  scale_x_continuous(limits = c(.3, .7))
 
 ggsave(
-  plot = mm_policy_packages_plot,
-  here("output", "mm_policy_packages_plot.png"),
-  height = 6, width = 9
+  plot = push_plot,
+  here("output", "mm_stringency.png"),
+  height = 4, width = 9
 )
 
-mm_policy_packages_plot
+ggsave(
+  plot = util_plot,
+  here("output", "mm_dist_design.png"),
+  height = 4, width = 9
+)
