@@ -1,6 +1,5 @@
 import pandas as pd
-import numpy as np 
-import plotly.express as px
+import numpy as np
 from functions.data_assist import apply_mapping, rename_columns
 
 
@@ -50,9 +49,9 @@ df = df.dropna(subset=['canton'])
 # speeders and laggards
 # calculate the 5% and 99% quantiles
 lower_threshold = df['duration_min'].quantile(0.05)
-upper_threshold = df['duration_min'].quantile(0.99)
+upper_threshold = df['duration_min'].quantile(0.95)
 print(f"Lower threshold (lowest 5% quartile): {lower_threshold} minutes")
-print(f"Upper threshold (highest 1% quartile): {upper_threshold} minutes")
+print(f"Upper threshold (highest 5% quartile): {upper_threshold} minutes")
 df['speeder'] = df['duration_min'] < lower_threshold
 df['laggard'] = df['duration_min'] > upper_threshold 
 
@@ -87,6 +86,9 @@ df = rename_columns(df, 'RooftopSolarPV', 'pv')
 df = rename_columns(df, 'Infrastructure', 'tradeoffs')
 df = rename_columns(df, 'Distribution', 'distribution')
 
+# add column for which experiment
+df['experiment'] = np.where(df['7_heat-choice'].notna(), 'heat',
+                   np.where(df['7_pv-choice'].notna(), 'pv', np.nan))
 
 
 # %% ########################## recode demographics ##############################
@@ -257,20 +259,23 @@ lpa_data_full.to_csv('data/lpa_input_full.csv', index=False)
 
 # %% ######################################### check sample #################################################
 
-# basics
-print(df.info())
-print(df.describe())
+# filter out speeders, laggards, inattentives
+df_filtered = df[~df[['speeder', 'laggard', 'inattentive']].any(axis=1)]
 
-# gender counts
-fig = px.histogram(df, x="gender", histnorm='percent')
-fig.show()
+# get sample descriptions
+columns_to_summarize = ['experiment', 'age', 'gender', 'region']
 
-# age counts
-fig = px.histogram(df, x="age", histnorm='percent')
-fig.show()
+summary_table = {}
+for col in columns_to_summarize:
+    counts = df[col].value_counts(dropna=True)  # Count non-NaN values
+    percentages = df[col].value_counts(normalize=True, dropna=True) * 100  # Get percentages
 
-# language region
-fig = px.histogram(df, x="region", histnorm='percent')
-fig.show()
+    summary_table[col] = pd.DataFrame({'Count': counts, 'Percentage': percentages})
 
-#TODO make list of descriptions
+# Display each summary table
+for col, table in summary_table.items():
+    print(f"Summary for {col}:\n")
+    print(table, "\n")
+
+
+# %%
