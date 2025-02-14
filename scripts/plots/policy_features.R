@@ -135,11 +135,11 @@ plot_policy_features <- function(data){
 
 push_plot <- df_push |>
   plot_policy_features() +
-  scale_x_continuous(limits = c(.3, .7))
+  scale_x_continuous(limits = c(.29, .71))
 
 util_plot <- df_util |>
   plot_policy_features() +
-  scale_x_continuous(limits = c(.3, .7))
+  scale_x_continuous(limits = c(.29, .71))
 
 ggsave(
   plot = push_plot,
