@@ -18,6 +18,9 @@ def prep_conjoint(df,
     - respondent_columns: by default three basic columns as chosen, 
     otherwise provide a vector of strings, containing the desired 
     column names 
+
+    Returns a long data frame with each observation within the conjoint 
+    experiment on its own row
     '''
 
     # select data columns per experiment
@@ -25,7 +28,7 @@ def prep_conjoint(df,
     df_task = df_task.drop(columns=df_task.filter(regex=regex_list).columns)
 
     # drop data rows per experiment 
-    df_task = df_task.dropna() # this doesn't work for pv because the pv table is saved for all, the NaN values are in the choice and rating columns
+    df_task = df_task.dropna()
     
     # reshape the attributes for both experiments, so each attribute in each package gets own row
     df_task_melted = df_task.melt(id_vars='ID', var_name='variable', value_name='value')
