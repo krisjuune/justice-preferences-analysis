@@ -7,9 +7,10 @@ library(ggplot2)
 library(patchwork)
 library(grid)
 library(Matrix)
+library(here)
 source("functions/r-assist.R")
 
-lpa_raw <- read.csv("data/lpa_input.csv")
+lpa_raw <- read.csv(here("data", "lpa_input.csv"))
 lpa_raw <- lpa_raw %>%
   mutate(
     speeder = as.logical(speeder),
@@ -32,7 +33,7 @@ lpa_columns <- lpa_columns %>%
   mutate_if(is.factor, as.numeric) %>%
   mutate_if(is.character, as.numeric)
 
-# perform lpa - this takes a minute or two!
+#SLOW perform lpa - this takes a minute or two!
 lpa_results <- estimate_profiles(
   lpa_columns,
   1:8,
@@ -67,7 +68,7 @@ for (i in seq_along(lpa_results)) {
 fit_stats$min_proportion <- min_proportions
 
 # write fit stats to file
-write.csv(fit_stats, "data/lpa_fit_stats.csv", row.names = TRUE)
+write.csv(fit_stats, here("data", "lpa_fit_stats.csv"), row.names = TRUE)
 
 
 # reshape the data for plotting
@@ -99,8 +100,8 @@ lpa_elbow_plot <- ggplot(fit_stats_long,
                              color = statistic,
                              shape = statistic,
                              fill = statistic)) +
-  geom_line(size = 1) +
-  geom_point(size = 3, stroke = 1.2) +
+  geom_line(linewidth = .8, alpha = .7) +
+  geom_point(size = 2, stroke = 1.2) +
   labs(title = "Elbow Plot of Fit Statistics for LPA",
        x = "Number of Profiles (G)",
        y = "Fit Statistics") +
@@ -110,17 +111,37 @@ lpa_elbow_plot <- ggplot(fit_stats_long,
   scale_shape_manual(values = 21:25) +
   scale_fill_viridis_d(end = .85)
 
-ggsave(here("output", "lpa_stats_elbow_plot.png"), plot = lpa_elbow_plot)
-
+ggsave(
+  here("output", "lpa_stats_elbow_plot.png"), 
+  plot = lpa_elbow_plot,
+  width = 9, height = 5
+)
 
 # save data with IDs and justice class
-class_assignments <- lpa_results[[3]]$dff$Class
-lpa_data <- lpa_data %>%
-  mutate(justice_class = class_assignments)
-lpa_class <- lpa_raw %>%
-  left_join(lpa_data %>% 
+class_assignments_g3 <- lpa_results[[3]]$dff$Class
+lpa_data_g3 <- lpa_data |>
+  mutate(justice_class = class_assignments_g3)
+lpa_class_g3 <- lpa_raw |>
+  left_join(lpa_data_g3 |>
               select(ID, justice_class),
             by = "ID")
 
-write.csv(lpa_class, "data/lpa_data.csv", row.names = TRUE)
+write.csv(
+  lpa_class_g3,
+  here("data", "lpa_data.csv"),
+  row.names = TRUE
+)
 
+class_assignments_g4 <- lpa_results[[4]]$dff$Class
+lpa_data_g4 <- lpa_data |>
+  mutate(justice_class = class_assignments_g4)
+lpa_class_g4 <- lpa_raw |>
+  left_join(lpa_data_g4 |>
+              select(ID, justice_class),
+            by = "ID")
+
+write.csv(
+  lpa_class_g4,
+  here("data", "lpa_data_g4.csv"),
+  row.names = TRUE
+)
