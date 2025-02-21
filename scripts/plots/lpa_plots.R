@@ -227,7 +227,7 @@ plot_raincloud <- lpa_data |>
     alpha = .2
   ) +
   coord_flip() +
-  scale_y_continuous(breaks = seq(-10, 10, 1)) +
+  scale_y_continuous(breaks = seq(0, 15, 1)) +
   scale_fill_viridis_d(end = .8) +
   scale_colour_viridis_d(end = .8) +
   facet_wrap(~justice_class_prop, ncol = 1) +
