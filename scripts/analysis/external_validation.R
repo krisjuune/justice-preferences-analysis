@@ -76,7 +76,7 @@ support_pct_tradeoffs <- df_pv_tradeoffs |>
   summarize(support = mean(rating > 0) * 100) |>
   pull(support)
 
-chosen_pct_tradeoffs <- df_pv_mix |>
+chosen_pct_tradeoffs <- df_pv_tradeoffs |>
   filter(stromversorgung == "Stromversorgung packages") |>
   summarize(support = mean(Y == 1) * 100) |>
   pull(support)
