@@ -41,7 +41,7 @@ df_push <- read_csv(
         "egalitarian", "universal", "utilitarian"
       ),
       labels = c(
-        "Egalitarian", "Universal", "Utilitarian"
+        "Egalitarianists", "Universalists", "Utilitarianists"
       )
     )
   )
@@ -60,8 +60,8 @@ df_util <- read_csv(
         "Other packages"
       ),
       labels = c(
-        "Utilitarian packages",
-        "Egalitarian packages",
+        "Market-based instruments",
+        "Regulatory and redistributive instruments",
         "Other packages"
       )
     ),
@@ -82,11 +82,11 @@ df_util <- read_csv(
         "egalitarian", "universal", "utilitarian"
       ),
       labels = c(
-        "Egalitarian", "Universal", "Utilitarian"
+        "Egalitarianists", "Universalists", "Utilitarianists"
       )
     )
   ) |>
-  filter(level %in% c("Utilitarian packages", "Egalitarian packages"))
+  filter(level %in% c("Market-based instruments", "Regulatory and redistributive instruments"))
 
 
 plot_policy_features <- function(data){

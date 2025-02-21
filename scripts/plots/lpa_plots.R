@@ -185,16 +185,16 @@ plot_raincloud <- lpa_data |>
   pivot_participant_profiles_long() |>
   mutate(
     justice_class_prop = case_when(
-      justice_class == "Egalitarian" ~ paste0("Egalitarian (", percent(justice_class_proportions$Egalitarian, accuracy = 0.1), ")"),
-      justice_class == "Universal" ~ paste0("Universal (", percent(justice_class_proportions$Universal, accuracy = 0.1), ")"),
-      justice_class == "Utilitarian" ~ paste0("Utilitarian (", percent(justice_class_proportions$Utilitarian, accuracy = 0.1), ")"),
+      justice_class == "Egalitarian" ~ paste0("Egalitarianists (", percent(justice_class_proportions$Egalitarian, accuracy = 0.1), ")"),
+      justice_class == "Universal" ~ paste0("Universalists (", percent(justice_class_proportions$Universal, accuracy = 0.1), ")"),
+      justice_class == "Utilitarian" ~ paste0("Utilitarianists (", percent(justice_class_proportions$Utilitarian, accuracy = 0.1), ")"),
     )
   ) |>
   ggplot(aes(
     x = principle,
     y = value,
     fill = justice_class_prop,
-    colour = justice_class_prop,
+    colour = justice_class_prop
   )) +
   stat_halfeye(
     alpha = .6,

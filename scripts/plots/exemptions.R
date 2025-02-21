@@ -40,7 +40,7 @@ df_plot <- df_plot |>
         "egalitarian", "universal", "utilitarian"
       ),
       labels = c(
-        "Egalitarian", "Universal", "Utilitarian"
+        "Egalitarianists", "Universalists", "Utilitarianists"
       )
     ),
     exemption = factor(
@@ -51,9 +51,9 @@ df_plot <- df_plot |>
         "Low- and middle-income exempted"
       ),
       labels = c(
-        "No exemptions",
-        "Low-income exempted",
-        "Low- and middle-income exempted"
+        "No-one",
+        "Low-income households",
+        "Low- and middle-income households"
       )
     )
   )
@@ -64,7 +64,8 @@ plot_exemptions <- function(data) {
       x = estimate,
       y = level,
       colour = justice_class,
-      shape = exemption
+      shape = exemption,
+      alpha = exemption
     )) +
     geom_point(
       size = 2,
@@ -88,12 +89,14 @@ plot_exemptions <- function(data) {
       linewidth = .3
     ) +
     scale_color_viridis_d(end = .8) +
+    scale_alpha_manual(values = c(.5, 1, 1)) +
     labs(
       colour = NULL,
-      shape = "Exemptions design across justice profiles",
+      shape = "Exemptions applied to",
+      alpha = "Exemptions applied to",
       y = NULL,
       x = "Marginal means"
-    ) + 
+    ) +
     guides(color = "none")
 }
 
