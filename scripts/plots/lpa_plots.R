@@ -8,6 +8,9 @@ library(patchwork)
 library(here)
 library(scales)
 
+main_text_size <- 10
+set.seed(42)
+
 lpa_data <- read_csv(
   here("data", "lpa_data.csv"),
   show_col_types = FALSE
@@ -20,7 +23,7 @@ lpa_data <- read_csv(
         "2", "1", "3"
       ),
       labels = c(
-        "Egalitarian", "Universal", "Utilitarian"
+        "Egalitarianists", "Universalists", "Utilitarianists"
       )
     )
   )
@@ -166,15 +169,21 @@ plot_participant_profiles <- function(data) {
   )) +
     geom_line(alpha = 0.3, size = 0.5) +
     labs(
-      title = "Individual Participant Profiles",
-      x = "Principle",
-      y = "Score",
-      color = "Latent Profile"
+      title = NULL,
+      x = "Justice principle",
+      y = "Sum score",
+      color = "Latent profile"
     ) +
     theme_classic() +
     scale_color_viridis_d(
       end = .8,
       guide = guide_legend(override.aes = list(alpha = 1))
+    ) +
+    theme(
+      legend.position = "right",
+      text = element_text(size = main_text_size),
+      strip.background = element_rect(size = 0),
+      strip.text.x = element_text(size = main_text_size, face = "bold")
     )
 
   plot
@@ -185,9 +194,9 @@ plot_raincloud <- lpa_data |>
   pivot_participant_profiles_long() |>
   mutate(
     justice_class_prop = case_when(
-      justice_class == "Egalitarian" ~ paste0("Egalitarianists (", percent(justice_class_proportions$Egalitarian, accuracy = 0.1), ")"),
-      justice_class == "Universal" ~ paste0("Universalists (", percent(justice_class_proportions$Universal, accuracy = 0.1), ")"),
-      justice_class == "Utilitarian" ~ paste0("Utilitarianists (", percent(justice_class_proportions$Utilitarian, accuracy = 0.1), ")"),
+      justice_class == "Egalitarianists" ~ paste0("Egalitarianists (", percent(justice_class_proportions$Egalitarian, accuracy = 0.1), ")"),
+      justice_class == "Universalists" ~ paste0("Universalists (", percent(justice_class_proportions$Universal, accuracy = 0.1), ")"),
+      justice_class == "Utilitarianists" ~ paste0("Utilitarianists (", percent(justice_class_proportions$Utilitarian, accuracy = 0.1), ")"),
     )
   ) |>
   ggplot(aes(
@@ -198,7 +207,7 @@ plot_raincloud <- lpa_data |>
   )) +
   stat_halfeye(
     alpha = .6,
-    adjust = 1.5,
+    adjust = 2.75,
     width = .6,
     .width = c(.5, .95),
     density = "bounded"
@@ -232,12 +241,21 @@ plot_raincloud <- lpa_data |>
     strip.text.x = element_text(size = 14, face = "bold")
   )
 
+
+
 # get plots
 plot_lpa_results <- plot_lpa_results(lpa_data)
 
 plot_participants <- lpa_data |>
+  group_by(justice_class) |>
+  slice_sample(n = 50) |>
   pivot_participant_profiles_long() |>
-  plot_participant_profiles()
+  plot_participant_profiles() +
+  facet_wrap(~justice_class, ncol = 3)
+
+# check plots
+plot_raincloud
+plot_participants
 
 # save stuff
 ggsave(
