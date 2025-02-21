@@ -8,7 +8,7 @@ library(patchwork)
 library(here)
 library(scales)
 
-main_text_size <- 10
+main_text_size <- 14
 set.seed(42)
 
 lpa_data <- read_csv(
@@ -20,7 +20,7 @@ lpa_data <- read_csv(
     justice_class = factor(
       justice_class,
       levels = c(
-        "2", "1", "3"
+        "1", "3", "2"
       ),
       labels = c(
         "Egalitarianists", "Universalists", "Utilitarianists"
@@ -35,7 +35,7 @@ principles_summary <- lpa_data |>
       Median = median,
       Mean = mean,
       SD = sd,
-      Support = ~ mean(. > 0) * 100
+      Support = ~ mean(. > 7) * 100
     ), .names = "{.col}_{.fn}")) |>
   pivot_longer(
     cols = everything(),
@@ -128,7 +128,16 @@ plot_lpa_results <- function(data) {
 }
 
 
-pivot_participant_profiles_long <- function(data_wide) {
+pivot_participant_profiles_long <- function(data_wide, shorten_labels = FALSE) {
+  labels_long <- c(
+    "Equal outcomes",
+    "Limitarian",
+    "Sufficientarian",
+    "Utilitarian"
+  )
+  
+  labels_short <- c("E", "L", "S", "U")
+  
   data_wide |>
     pivot_longer(
       cols = c(
@@ -149,12 +158,7 @@ pivot_participant_profiles_long <- function(data_wide) {
           "sufficientarian",
           "utilitarian"
         ),
-        labels = c(
-          "Equal outcomes",
-          "Limitarian",
-          "Sufficientarian",
-          "Utilitarian"
-        )
+        labels = if (shorten_labels) labels_short else labels_long
       )
     )
 }
@@ -167,7 +171,7 @@ plot_participant_profiles <- function(data) {
     group = ID,
     color = justice_class
   )) +
-    geom_line(alpha = 0.3, size = 0.5) +
+    geom_line(alpha = 0.4, size = 0.5) +
     labs(
       title = NULL,
       x = "Justice principle",
@@ -207,7 +211,7 @@ plot_raincloud <- lpa_data |>
   )) +
   stat_halfeye(
     alpha = .6,
-    adjust = 2.75,
+    adjust = 2.2,
     width = .6,
     .width = c(.5, .95),
     density = "bounded"
@@ -236,9 +240,9 @@ plot_raincloud <- lpa_data |>
   theme_classic() +
   theme(
     legend.position = "none",
-    text = element_text(size = 14),
+    text = element_text(size = main_text_size),
     strip.background = element_rect(size = 0),
-    strip.text.x = element_text(size = 14, face = "bold")
+    strip.text.x = element_text(size = main_text_size, face = "bold")
   )
 
 
@@ -249,7 +253,7 @@ plot_lpa_results <- plot_lpa_results(lpa_data)
 plot_participants <- lpa_data |>
   group_by(justice_class) |>
   slice_sample(n = 50) |>
-  pivot_participant_profiles_long() |>
+  pivot_participant_profiles_long(shorten_labels = TRUE) |>
   plot_participant_profiles() +
   facet_wrap(~justice_class, ncol = 3)
 
@@ -267,7 +271,7 @@ ggsave(
 ggsave(
   here("output", "lpa_participant_profiles.png"),
   plot = plot_participants,
-  height = 7, width = 9
+  height = 6, width = 11
 )
 
 ggsave(

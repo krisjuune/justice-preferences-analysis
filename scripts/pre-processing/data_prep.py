@@ -6,12 +6,9 @@ from functions.data_assist import apply_mapping, rename_columns
 #%% ############################# read data ##################################
 
 df = pd.read_csv('raw_data/raw_conjoint_120624.csv')
-
-# check data 
 pd.set_option('display.max_columns', None) # displays all columns when printing parts of the df
 columns = df.columns.tolist()
-df = df.drop([0, 1]) # remove first two rows
-
+df = df.drop([0, 1])
 
 
 # %% ############################# clean data ################################
@@ -103,7 +100,7 @@ rating_values = ['Stark dagegen',
                  'Eher dafür',
                  'Dafür',
                  'Stark dafür']
-rating_scale = np.array(list(zip(rating_values, numerical_values_neg)))
+rating_scale = np.array(list(zip(rating_values, numerical_values)))
 likert_dict = {**dict(rating_scale)}
 df = apply_mapping(df, likert_dict, column_pattern=['justice', 'rating'])
 
@@ -205,7 +202,7 @@ likert_values = ['Stimme überhaupt nicht zu',
                  'Stimme eher zu', 
                  'Stimme zu', 
                  'Stimme voll und ganz zu']
-likert_scale = np.array(list(zip(likert_values, numerical_values_neg)))
+likert_scale = np.array(list(zip(likert_values, numerical_values)))
 justice_dict = {**dict(likert_scale)}
 df_justice = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'])
 
@@ -233,28 +230,22 @@ lpa_data = df_justice[['ID',
                        'limitarian', 
                        'speeder', 
                        'laggard', 
-                       'inattentive']]
+                       'inattentive', 
+                       'justice_general_1',
+                       'justice_tax_1',
+                       'justice_subsidy_1',
+                       'justice_general_2',
+                       'justice_tax_2',
+                       'justice_subsidy_2',
+                       'justice_general_3',
+                       'justice_tax_3',
+                       'justice_subsidy_3',
+                       'justice_general_4',
+                       'justice_tax_4',
+                       'justice_subsidy_4']]
 
 lpa_data.to_csv('data/lpa_input.csv', index=False)
 
-lpa_data_full = df_justice[['ID',
-                            'justice_general_1',
-                            'justice_tax_1',
-                            'justice_subsidy_1',
-                            'justice_general_2', 
-                            'justice_tax_2',
-                            'justice_subsidy_2',
-                            'justice_general_3',
-                            'justice_tax_3',
-                            'justice_subsidy_3',
-                            'justice_general_4',
-                            'justice_tax_4',
-                            'justice_subsidy_4',
-                            'speeder',
-                            'laggard',
-                            'inattentive']]
-
-lpa_data_full.to_csv('data/lpa_input_full.csv', index=False)
 # now run lpa analysis
 
 # %% ######################################### check sample #################################################

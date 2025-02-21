@@ -11,26 +11,26 @@ library(here)
 source("functions/r-assist.R")
 
 lpa_raw <- read.csv(here("data", "lpa_input.csv"))
-lpa_raw <- lpa_raw %>%
+lpa_raw <- lpa_raw |>
   mutate(
     speeder = as.logical(speeder),
     laggard = as.logical(laggard),
     inattentive = as.logical(inattentive)
   )
-lpa_data <- lpa_raw %>%
-  filter_respondents() %>%
+lpa_data <- lpa_raw |>
+  filter_respondents() |>
   drop_na()
 # 5 missing for respondents that dropped out
 # during or before the justice section
 
 ########################## LPA models ############################
-set.seed(75)
+set.seed(42)
 
 # run model and store results
-lpa_columns <- lpa_data %>%
-  select(-ID, -speeder, -laggard, -inattentive)
-lpa_columns <- lpa_columns %>%
-  mutate_if(is.factor, as.numeric) %>%
+lpa_columns <- lpa_data |>
+  select(egalitarian, limitarian, sufficientarian, utilitarian)
+lpa_columns <- lpa_columns |>
+  mutate_if(is.factor, as.numeric) |>
   mutate_if(is.character, as.numeric)
 
 #SLOW perform lpa - this takes a minute or two!
@@ -67,13 +67,9 @@ for (i in seq_along(lpa_results)) {
 
 fit_stats$min_proportion <- min_proportions
 
-# write fit stats to file
-write.csv(fit_stats, here("data", "lpa_fit_stats.csv"), row.names = TRUE)
-
-
 # reshape the data for plotting
-fit_stats_plot <- fit_stats %>%
-  select(G, AIC, AWE, BIC, SABIC, ICL) %>%
+fit_stats_plot <- fit_stats |>
+  select(G, AIC, AWE, BIC, SABIC, ICL) |>
   mutate(ICL = ICL * -1)
 
 fit_stats_long <- pivot_longer(fit_stats_plot,
@@ -110,6 +106,9 @@ lpa_elbow_plot <- ggplot(fit_stats_long,
   scale_color_viridis_d(end = .85) +
   scale_shape_manual(values = 21:25) +
   scale_fill_viridis_d(end = .85)
+
+# save fit stats stuff
+write.csv(fit_stats, here("data", "lpa_fit_stats.csv"), row.names = TRUE)
 
 ggsave(
   here("output", "lpa_stats_elbow_plot.png"), 
