@@ -61,7 +61,7 @@ df_util <- read_csv(
       ),
       labels = c(
         "Market-based instruments",
-        "Regulatory and redistributive instruments",
+        "Regulatory and \n redistributive instruments",
         "Other packages"
       )
     ),
@@ -86,7 +86,7 @@ df_util <- read_csv(
       )
     )
   ) |>
-  filter(level %in% c("Market-based instruments", "Regulatory and redistributive instruments"))
+  filter(level %in% c("Market-based instruments", "Regulatory and \n redistributive instruments"))
 
 
 plot_policy_features <- function(data){
