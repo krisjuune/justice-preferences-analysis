@@ -32,12 +32,12 @@ mm_exemption_choice <- cj(
 )
 
 # combine and save to file
-mm_exemption_choice <- mm_exemption_choice %>% select(-BY)
-mm_exemption_rating <- mm_exemption_rating %>% select(-BY)
+mm_exemption_choice <- mm_exemption_choice |> select(-BY)
+mm_exemption_rating <- mm_exemption_rating |> select(-BY)
 
 mm_exemption_combined <- bind_rows(
-  mm_exemption_choice %>% mutate(outcome = "choice"),
-  mm_exemption_rating %>% mutate(outcome = "rating")
+  mm_exemption_choice |> mutate(outcome = "choice"),
+  mm_exemption_rating |> mutate(outcome = "rating")
 )
 
 write_csv(mm_exemption_combined, here("data", "mm_exemptions.csv"))

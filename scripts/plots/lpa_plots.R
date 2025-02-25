@@ -136,7 +136,12 @@ pivot_participant_profiles_long <- function(data_wide, shorten_labels = FALSE) {
     "Utilitarian"
   )
   
-  labels_short <- c("E", "L", "S", "U")
+  labels_short <- c(
+    "Equal",
+    "Lim",
+    "Suff",
+    "Util"
+  )
   
   data_wide |>
     pivot_longer(
@@ -176,7 +181,7 @@ plot_participant_profiles <- function(data) {
       title = NULL,
       x = "Justice principle",
       y = "Sum score",
-      color = "Latent profile"
+      color = "Justice orientation"
     ) +
     theme_classic() +
     scale_color_viridis_d(
