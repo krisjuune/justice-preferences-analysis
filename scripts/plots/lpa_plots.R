@@ -149,7 +149,7 @@ pivot_participant_profiles_long <- function(
 
   data_long <- data_wide |>
     pivot_longer(
-      cols = c("egalitarian", "sufficientarian", "limitarian", "utilitarian"),
+      cols = c("utilitarian", "limitarian", "sufficientarian", "egalitarian"),
       names_to = "principle",
       values_to = "value"
     )
@@ -162,11 +162,11 @@ pivot_participant_profiles_long <- function(
       ungroup()
   }
 
-  data_long |>
+  data_long <- data_long |>
     mutate(
       principle = factor(
         principle,
-        levels = c("egalitarian", "limitarian", "sufficientarian", "utilitarian"),
+        levels = c("utilitarian", "limitarian", "sufficientarian", "egalitarian"),
         labels = if (shorten_labels) labels_short else labels_long
       )
     )
@@ -186,8 +186,8 @@ plot_participant_profiles <- function(data) {
     labs(
       title = NULL,
       x = "Justice principle",
-      y = "Sum score",
-      color = "Justice orientation"
+      y = "z-score",
+      color = NULL
     ) +
     theme_classic() +
     scale_color_viridis_d(
@@ -195,7 +195,7 @@ plot_participant_profiles <- function(data) {
       guide = guide_legend(override.aes = list(alpha = 1))
     ) +
     theme(
-      legend.position = "right",
+      legend.position = "none",
       text = element_text(size = main_text_size),
       strip.background = element_rect(size = 0),
       strip.text.x = element_text(size = main_text_size, face = "bold")
@@ -243,7 +243,7 @@ plot_raincloud <- lpa_data |>
   scale_colour_viridis_d(end = .8) +
   facet_wrap(~justice_class_prop, ncol = 1) +
   labs(
-    y = "z-score",
+    y = "Sum score",
     x = "Justice principle",
     colour = NULL,
     fill = NULL
@@ -264,7 +264,10 @@ plot_lpa_results <- plot_lpa_results(lpa_data)
 plot_participants <- lpa_data |>
   group_by(justice_class) |>
   slice_sample(n = 50) |>
-  pivot_participant_profiles_long(shorten_labels = TRUE) |>
+  pivot_participant_profiles_long(
+    shorten_labels = TRUE,
+    get_z = TRUE
+  ) |>
   plot_participant_profiles() +
   facet_wrap(~justice_class, ncol = 3)
 
@@ -280,7 +283,7 @@ ggsave(
 )
 
 ggsave(
-  here("output", "lpa_participant_profiles.png"),
+  here("output", "lpa_participant_profiles_z.png"),
   plot = plot_participants,
   height = 6, width = 11
 )
