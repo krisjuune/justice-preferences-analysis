@@ -128,44 +128,50 @@ plot_lpa_results <- function(data) {
 }
 
 
-pivot_participant_profiles_long <- function(data_wide, shorten_labels = FALSE) {
+pivot_participant_profiles_long <- function(
+  data_wide,
+  shorten_labels = FALSE,
+  get_z = FALSE
+) {
   labels_long <- c(
-    "Equal outcomes",
-    "Limitarian",
+    "Utilitarian",
     "Sufficientarian",
-    "Utilitarian"
+    "Limitarian",
+    "Equal outcomes"
   )
-  
+
   labels_short <- c(
-    "Equal",
-    "Lim",
+    "Util",
     "Suff",
-    "Util"
+    "Lim",
+    "Equal"
   )
-  
-  data_wide |>
+
+  data_long <- data_wide |>
     pivot_longer(
-      cols = c(
-        "egalitarian",
-        "sufficientarian",
-        "limitarian",
-        "utilitarian"
-      ),
+      cols = c("egalitarian", "sufficientarian", "limitarian", "utilitarian"),
       names_to = "principle",
       values_to = "value"
-    ) |>
+    )
+
+  if (get_z) {
+    data_long <- data_long |>
+      group_by(principle) |>
+      # get z scores
+      mutate(value = scale(value)[, 1]) |>
+      ungroup()
+  }
+
+  data_long |>
     mutate(
       principle = factor(
         principle,
-        levels = c(
-          "egalitarian",
-          "limitarian",
-          "sufficientarian",
-          "utilitarian"
-        ),
+        levels = c("egalitarian", "limitarian", "sufficientarian", "utilitarian"),
         labels = if (shorten_labels) labels_short else labels_long
       )
     )
+
+  return(data_long)
 }
 
 ## get profiles per participant
@@ -237,7 +243,7 @@ plot_raincloud <- lpa_data |>
   scale_colour_viridis_d(end = .8) +
   facet_wrap(~justice_class_prop, ncol = 1) +
   labs(
-    y = "Sum score",
+    y = "z-score",
     x = "Justice principle",
     colour = NULL,
     fill = NULL
