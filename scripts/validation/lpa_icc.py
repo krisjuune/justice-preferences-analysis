@@ -60,7 +60,6 @@ def cronbach_alpha(df):
     
     return (n_items / (n_items - 1)) * (1 - item_variances.sum() / total_score_var)
 
-# Example usage per principle:
 alpha_results = {}
 for principle in df_long['principle'].unique():
     # Pivot to create one column per variable (item) for each principle
