@@ -1,33 +1,16 @@
-import pingoin as pg
+import pandas as pd
+import pingouin as pg
 import numpy as np
 
-# %% ################### check ICC for justice ##########################
-#TODO move to a separate script later
-lpa_data = df_justice[['ID', 
-                       'utilitarian', 
-                       'egalitarian', 
-                       'sufficientarian', 
-                       'limitarian', 
-                       'justice_general_1', 
-                       'justice_tax_1', 
-                       'justice_subsidy_1',
-                       'justice_general_2', 
-                       'justice_tax_2',
-                       'justice_subsidy_2',
-                       'justice_general_3',
-                       'justice_tax_3',
-                       'justice_subsidy_3',
-                       'justice_general_4',
-                       'justice_tax_4',
-                       'justice_subsidy_4',
-                       'speeder', 
-                       'laggard', 
-                       'inattentive']]
+# %% import data
 
+lpa_data = pd.read_csv("data/lpa_input_full.csv")
 
-lpa_data = lpa_data[(df_justice['speeder'] == False) & 
-              (df_justice['laggard'] == False) & 
-              (df_justice['inattentive'] == False)]
+lpa_data = lpa_data[(lpa_data['speeder'] == False) & 
+              (lpa_data['laggard'] == False) & 
+              (lpa_data['inattentive'] == False)]
+
+# %% check ICC for justice principles
 
 df_long = lpa_data.melt(id_vars=['ID'], 
                         value_vars=['justice_general_1', 'justice_tax_1', 'justice_subsidy_1',
@@ -36,7 +19,7 @@ df_long = lpa_data.melt(id_vars=['ID'],
                                     'justice_general_4', 'justice_tax_4', 'justice_subsidy_4'],
                         var_name='variable', value_name='score')
 
-# Extract set number from variable name (1, 2, 3, or 4)
+# Extract principle number from variable name (1, 2, 3, 4)
 df_long['principle'] = df_long['variable'].str.extract(r'(\d+)')
 
 icc_results = pg.intraclass_corr(data=df_long, 
@@ -45,9 +28,6 @@ icc_results = pg.intraclass_corr(data=df_long,
                                  ratings='score')
 
 print(icc_results)
-
-# p-values are actually so small they get shown as 0.0, 
-# tested by only looking at general and subsidy
 
 # %% cronbach's alpha
 
@@ -63,7 +43,13 @@ def cronbach_alpha(df):
 alpha_results = {}
 for principle in df_long['principle'].unique():
     # Pivot to create one column per variable (item) for each principle
-    df_pivot = df_long[df_long['principle'] == principle].pivot(index='id', columns='variable', values='score')
+    df_pivot = df_long[df_long['principle'] == principle].pivot(index='ID', columns='variable', values='score')
     alpha_results[principle] = cronbach_alpha(df_pivot)
 
 alpha_results
+
+# %% save
+
+icc_results.to_csv("output/icc_results.csv")
+
+# %%
