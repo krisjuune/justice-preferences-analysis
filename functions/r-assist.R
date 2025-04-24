@@ -10,7 +10,7 @@ filter_respondents <- function(df,
                                filter_laggards = TRUE, 
                                filter_inattentives = TRUE) {
   # get initial nr of respondents
-  initial_unique_ids <- df %>% pull(ID) %>% unique() %>% length()
+  initial_unique_ids <- df %>% pull(id) %>% unique() %>% length()
   
   # convert the columns to logical type
   df <- df %>%
@@ -32,9 +32,9 @@ filter_respondents <- function(df,
   }
   
   # get number of respondents filtered out
-  final_unique_ids <- df %>% pull(ID) %>% unique() %>% length()
+  final_unique_ids <- df %>% pull(id) %>% unique() %>% length()
   filtered_out_count <- initial_unique_ids - final_unique_ids
-  cat("Number of unique respondents (IDs) filtered out:", filtered_out_count, "\n")
+  cat("Number of unique respondents (ids) filtered out:", filtered_out_count, "\n")
   
   return(df)
 }
@@ -75,12 +75,12 @@ factor_conjoint <- function(df, experiment) {
         justice_class = factor(
           case_when(
             justice_class == 1 ~ 0,
-            justice_class == 2 ~ 1,
             justice_class == 3 ~ 2,
+            justice_class == 2 ~ 1,
             TRUE ~ NA_real_
           ),
           levels = 0:2,
-          labels = c("egalitarian", "utilitarian", "universal")
+          labels = c("Egalitarian", "Universal", "Utilitarian")
         )
       )
   }
@@ -444,7 +444,7 @@ marginal_means <- function(df,
                            response_var, 
                            predictors, 
                            output_file = "data/MMs.csv", 
-                           id_column = "ID") 
+                           id_column = "id") 
   {
   
   # create the formula using independent and dependent vars
@@ -535,7 +535,7 @@ subgroup_mm <- function(df,
   mm_results <- cj(
     df,
     formula,
-    id = ~ID,
+    id = ~id,
     estimate = "mm",
     by = as.formula(paste("~", by))  # Group by variable passed as 'by'
   )

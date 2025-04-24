@@ -3,22 +3,15 @@ library(dplyr)
 library(purrr)
 library(forcats)
 library(arrow)
-library(broom)
 library(cregg)
-library(survey)
-library(marginaleffects)
-library(broom.helpers)
 library(parameters)
 library(gridExtra)
 library(grid)
 
 source("functions/r-assist.R")
 
-df_heat <- read.csv("data/heat-conjoint.csv")
-df_pv <- read.csv("data/pv-conjoint.csv")
-
-#AMCE = regression coefficients where there’s an omitted reference category
-#Marginal means = conditional averages for different category levels
+df_heat <- read.csv("data/heat_conjoint.csv")
+df_pv <- read.csv("data/pv_conjoint.csv")
 
 # remove speeders, laggards, and inattentives
 df_heat <- filter_respondents(df_heat)
