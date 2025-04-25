@@ -11,16 +11,19 @@ library(patchwork)
 
 source(here("functions", "r-assist.R"))
 
-df_heat <- read.csv(here("data", "heat-conjoint.csv"))
-df_pv <- read.csv(here("data", "pv-conjoint.csv"))
+df_heat <- read_csv(
+  here("data", "heat_conjoint.csv"),
+  show_col_types = FALSE
+) |>
+  filter_respondents() |>
+  factor_conjoint(experiment = "heat")
 
-# remove speeders, laggards, and inattentives
-df_heat <- filter_respondents(df_heat)
-df_pv <- filter_respondents(df_pv)
-
-# factorise conjoints and variables for subgroup analysis
-df_heat <- factor_conjoint(df_heat, experiment = "heat")
-df_pv <- factor_conjoint(df_pv, experiment = "pv")
+df_pv <- read_csv(
+  here("data", "pv_conjoint.csv"),
+  show_col_types = FALSE
+) |>
+  filter_respondents() |>
+  factor_conjoint(experiment = "pv")
 
 # calculate nr of observations where non-chosen package rated higher
 dodgy_pct_heat <- df_heat |>
@@ -73,7 +76,7 @@ df_pv <- df_pv |>
 pv_mm_all <- cj(
   df_pv,
   Y ~ mix + imports + pv + tradeoffs + distribution,
-  id = ~ID,
+  id = ~id,
   estimate = "amce"
 ) |> mutate(group = "All")
 
@@ -94,7 +97,7 @@ heat_mm_all <- cj(
 heat_mm_clean <- cj(
   df_heat |> filter(!dodgy_flag),
   Y ~ year + tax + ban + heatpump + energyclass + exemption,
-  id = ~ID,
+  id = ~id,
   estimate = "amce"
 ) |> mutate(group = "Clean")
 
