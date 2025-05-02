@@ -1,8 +1,9 @@
 import pandas as pd
 from functions.conjoint_assist import prep_conjoint
-from functions.data_assist import apply_mapping
+from functions.data_assist import apply_mapping, rename_columns
 
-# run this after LPA 
+# %%
+df = pd.read_csv("data/clean_data.csv")
 
 # %% ################################## translate conjoints #######################################
 
@@ -210,35 +211,53 @@ df = apply_mapping(df, simple_dict, column_pattern='table')
 
 lpa_cont = pd.read_csv('data/lpa_data.csv')
 
-just_str = ['utilitarian', 'egalitarian', 'sufficientarian', 'limitarian', 'class']
-
 df = df.merge(
-    lpa_cont[['ID', 
-              'utilitarian', 
-              'egalitarian', 
-              'sufficientarian', 
-              'limitarian', 
+    lpa_cont[['id',
               'justice_class']],
-    on='ID',
+    on='id',
     how='left'
 )
 
+lpa_g4 = pd.read_csv('data/lpa_data_g4.csv')
+
+df_g4 = df.merge(
+    lpa_g4[[
+        'id',
+        'justice_class'
+    ]],
+    on='id',
+    how='left'
+)
+
+df_g4 = rename_columns(df_g4, original_str='justice_class_y', replacement_str='justice_class')
+df_g4 = rename_columns(df_g4, original_str='justice_class_x', replacement_str='old_justice_class')
+
 # %% ############################ conjoint data #######################################
 
-# select respondent data
-respondents = df[[
-        "ID", "duration_min", "gender", "age", "region", "canton", "citizen", 
-        "education", "urbanness", "renting", "income", "household-size", "party", 
-        "satisfaction", "justice_class", "speeder", "laggard", "inattentive", 
-        "trust"]] # missing literacy
+respondents_g3 = df[[
+    "id", "duration_min", "gender", "age", "region", "canton", "citizen", 
+    "education", "urbanness", "renting", "income", "household-size", "party", 
+    "satisfaction", "justice_class", "speeder", "laggard", "inattentive", 
+    "trust"
+]]
+
+respondents_g4 = df_g4[[
+    "id", "duration_min", "gender", "age", "region", "canton", "citizen", 
+    "education", "urbanness", "renting", "income", "household-size", "party", 
+    "satisfaction", "justice_class", "speeder", "laggard", "inattentive", 
+    "trust"
+]]
 
 heat_regex = 'pv|mix|imports|tradeoffs|distribution'
 heat_filemarker = 'heat'
 pv_regex = 'heat|year|tax|ban|energyclass|exemption'
 pv_filemarker = 'pv'
 
-df_heat = prep_conjoint(df, respondent_columns=respondents, regex_list=heat_regex, filemarker=heat_filemarker) #1068 participants in heat
-df_pv = prep_conjoint(df, respondent_columns=respondents, regex_list=pv_regex, filemarker=pv_filemarker) #1062 participants in pv
+df_heat = prep_conjoint(df, respondent_columns=respondents_g3, regex_list=heat_regex, filemarker=heat_filemarker)
+df_pv = prep_conjoint(df, respondent_columns=respondents_g3, regex_list=pv_regex, filemarker=pv_filemarker)
+
+df_heat_g4 = prep_conjoint(df_g4, respondent_columns = respondents_g4, regex_list = heat_regex, filemarker = "heat_g4")
+df_pv_g4 = prep_conjoint(df_g4, respondent_columns = respondents_g4, regex_list = pv_regex, filemarker = "pv_g4")
 
 
 # %%

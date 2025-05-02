@@ -6,8 +6,8 @@ library(readr)
 library(cregg)
 source("functions/r-assist.R")
 
-df_heat <- read_csv(here("data", "heat-conjoint.csv"))
-df_pv <- read_csv(here("data", "pv-conjoint.csv"))
+df_heat <- read_csv(here("data", "heat_conjoint.csv"))
+df_pv <- read_csv(here("data", "pv_conjoint.csv"))
 
 # clean
 df_heat <- filter_respondents(df_heat)

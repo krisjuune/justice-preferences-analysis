@@ -66,21 +66,16 @@ factor_conjoint <- function(df, experiment) {
   
   ### check and factorise justice_class
   if ("justice_class" %in% colnames(df)) {
-    if (!is.numeric(df$justice_class)) {
-      df <- df %>%
-        mutate(justice_class = as.numeric(justice_class))
-    }
     df <- df %>%
       mutate(
         justice_class = factor(
-          case_when(
-            justice_class == 1 ~ 0,
-            justice_class == 3 ~ 2,
-            justice_class == 2 ~ 1,
-            TRUE ~ NA_real_
+          justice_class,
+          levels = c(
+            "1", "3", "2"
           ),
-          levels = 0:2,
-          labels = c("Egalitarian", "Universal", "Utilitarian")
+          labels = c(
+            "Egalitarianists", "Universalists", "Utilitarianists"
+          )
         )
       )
   }

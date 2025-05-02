@@ -32,8 +32,8 @@ columns_to_num = ['Duration (in seconds)',
 for col in columns_to_num:
     df[col] = pd.to_numeric(df[col], errors='coerce')
 
-# add column for IDs and duration in min
-df['ID'] = range(1, len(df) + 1)
+# add column for ids and duration in min
+df['id'] = range(1, len(df) + 1)
 df['duration_min'] = (df['Duration (in seconds)'] / 60).round(3)
 
 # filter out previews
@@ -204,7 +204,7 @@ likert_values = ['Stimme überhaupt nicht zu',
                  'Stimme voll und ganz zu']
 likert_scale = np.array(list(zip(likert_values, numerical_values)))
 justice_dict = {**dict(likert_scale)}
-df_justice = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'])
+df = apply_mapping(df, justice_dict, column_pattern=['justice', 'rating'])
 
 # justice columns dictionary
 justice_columns = {
@@ -217,34 +217,36 @@ justice_columns = {
 # convert columns to numeric types
 for just_columns in justice_columns.values():
     for col in just_columns:
-        df_justice[col] = pd.to_numeric(df[col], errors='coerce')
+        df[col] = pd.to_numeric(df[col], errors='coerce')
 
 # get mean for each key and append to dataframe
 for key, just_columns in justice_columns.items():
     df[key] = df[just_columns].sum(axis=1).round(3)
 
-lpa_data = df_justice[['ID', 
-                       'utilitarian', 
-                       'egalitarian', 
-                       'sufficientarian', 
-                       'limitarian', 
-                       'speeder', 
-                       'laggard', 
-                       'inattentive', 
-                       'justice_general_1',
-                       'justice_tax_1',
-                       'justice_subsidy_1',
-                       'justice_general_2',
-                       'justice_tax_2',
-                       'justice_subsidy_2',
-                       'justice_general_3',
-                       'justice_tax_3',
-                       'justice_subsidy_3',
-                       'justice_general_4',
-                       'justice_tax_4',
-                       'justice_subsidy_4']]
+lpa_data = df[[
+    'id', 
+    'utilitarian', 
+    'egalitarian', 
+    'sufficientarian', 
+    'limitarian', 
+    'speeder', 
+    'laggard', 
+    'inattentive', 
+    'justice_general_1',
+    'justice_tax_1',
+    'justice_subsidy_1',
+    'justice_general_2',
+    'justice_tax_2',
+    'justice_subsidy_2',
+    'justice_general_3',
+    'justice_tax_3',
+    'justice_subsidy_3',
+    'justice_general_4',
+    'justice_tax_4',
+    'justice_subsidy_4']]
 
 lpa_data.to_csv('data/lpa_input.csv', index=False)
+df.to_csv("data/clean_data.csv", index = False)
 
 # now run lpa analysis
 
@@ -258,8 +260,8 @@ columns_to_summarize = ['experiment', 'age', 'gender', 'region']
 
 summary_table = {}
 for col in columns_to_summarize:
-    counts = df[col].value_counts(dropna=True)  # Count non-NaN values
-    percentages = df[col].value_counts(normalize=True, dropna=True) * 100  # Get percentages
+    counts = df[col].value_counts(dropna=True)
+    percentages = df[col].value_counts(normalize=True, dropna=True) * 100
 
     summary_table[col] = pd.DataFrame({'Count': counts, 'Percentage': percentages})
 

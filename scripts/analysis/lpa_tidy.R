@@ -98,32 +98,41 @@ lpa_elbow_plot <- ggplot(fit_stats_long,
                              fill = statistic)) +
   geom_line(linewidth = .8, alpha = .7) +
   geom_point(size = 2, stroke = 1.2) +
-  labs(title = "Elbow Plot of Fit Statistics for LPA",
-       x = "Number of Profiles (G)",
-       y = "Fit Statistics") +
+  labs(
+    title = "Fit Statistics for LPA",
+    x = "Number of profiles",
+    y = "Fit statistic value",
+  ) +
   theme_classic() +
-  theme(text = element_text(size = 12)) +
+  theme(
+    text = element_text(size = 12),
+    legend.title = element_blank()
+  ) +
   scale_color_viridis_d(end = .85) +
   scale_shape_manual(values = 21:25) +
   scale_fill_viridis_d(end = .85)
 
 # save fit stats stuff
-write.csv(fit_stats, here("data", "lpa_fit_stats.csv"), row.names = TRUE)
-
-ggsave(
-  here("output", "lpa_stats_elbow_plot.png"), 
-  plot = lpa_elbow_plot,
-  width = 9, height = 5
+write.csv(
+  fit_stats,
+  here("data", "lpa_fit_stats.csv"),
+  row.names = TRUE
 )
 
-# save data with IDs and justice class
+ggsave(
+  here("output", "lpa_stats_elbow_plot.png"),
+  plot = lpa_elbow_plot,
+  width = 8, height = 5
+)
+
+# save data with ids and justice class
 class_assignments_g3 <- lpa_results[[3]]$dff$Class
 lpa_data_g3 <- lpa_data |>
   mutate(justice_class = class_assignments_g3)
 lpa_class_g3 <- lpa_raw |>
   left_join(lpa_data_g3 |>
-              select(ID, justice_class),
-            by = "ID")
+              select(id, justice_class),
+            by = "id")
 
 write.csv(
   lpa_class_g3,
@@ -136,8 +145,8 @@ lpa_data_g4 <- lpa_data |>
   mutate(justice_class = class_assignments_g4)
 lpa_class_g4 <- lpa_raw |>
   left_join(lpa_data_g4 |>
-              select(ID, justice_class),
-            by = "ID")
+              select(id, justice_class),
+            by = "id")
 
 write.csv(
   lpa_class_g4,
