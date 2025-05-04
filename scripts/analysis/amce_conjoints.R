@@ -10,6 +10,7 @@ library(grid)
 library(ggplot2)
 library(patchwork)
 library(here)
+library(nnet)
 
 source(here("functions", "r-assist.R"))
 
@@ -28,7 +29,7 @@ df_pv <- read_csv(
   factor_conjoint(experiment = "pv")
 
 ############################## AMCE ##################################
-# testing the cregg package
+
 heat_amce_choice <- amce(
   df_heat,
   Y ~ year + tax + ban + heatpump + energyclass + exemption,
@@ -189,7 +190,7 @@ write.csv(pv_amce_choice, "data/pv_amce.csv", row.names = TRUE)
 ############################ justice and demo ################################
 # get combined df for justice analysis
 df_just <- bind_rows(
-  df_heat %>% select(ID, 
+  df_heat %>% select(id, 
                      gender, 
                      age, 
                      region, 
@@ -201,7 +202,7 @@ df_just <- bind_rows(
                      party, 
                      trust,
                      justice_class),
-  df_pv %>% select(ID, 
+  df_pv %>% select(id, 
                    gender, 
                    age, 
                    region,
@@ -214,7 +215,7 @@ df_just <- bind_rows(
                    trust, 
                    justice_class)
 ) %>%
-  distinct(ID, .keep_all = TRUE) 
+  distinct(id, .keep_all = TRUE) 
 
 df_long <- df_just %>%  # for plotting the group compositions
   select(gender, 
@@ -233,7 +234,7 @@ df_long <- df_just %>%  # for plotting the group compositions
                values_to = "category")
 
 # Run multinomial logistic regression
-df_just$justice_class <- relevel(df_just$justice_class, ref = "universal")
+df_just$justice_class <- relevel(df_just$justice_class, ref = "Universalists")
 multinom_model <- multinom(justice_class ~ 
                              gender +
                              age +
@@ -263,22 +264,44 @@ p_values <- (1 - pnorm(abs(z), 0, 1)) * 2
 # Calculate odds ratios
 odds_ratios <- exp(coefficients)
 
-# Convert coefficients, odds ratios, and p-values to data frames
+# 95% CI for odds ratios
+ci_lower <- exp(coefficients - 1.96 * standard_errors)
+ci_upper <- exp(coefficients + 1.96 * standard_errors)
+
+# Convert to data frames
 coefficients_df <- as.data.frame(coefficients)
 odds_ratios_df <- as.data.frame(odds_ratios)
+ci_lower_df <- as.data.frame(ci_lower)
+ci_upper_df <- as.data.frame(ci_upper)
 p_values_df <- as.data.frame(p_values)
 
-# Combine coefficients, odds ratios, and p-values into one data frame
-results_df <- cbind(coefficients_df, odds_ratios_df, p_values_df)
+# Combine everything
+results_df <- cbind(coefficients_df,
+                    odds_ratios_df,
+                    ci_lower_df,
+                    ci_upper_df,
+                    p_values_df)
 
-# Update column names
-colnames(results_df) <- c(paste0("Coefficient_", colnames(coefficients_df)),
-                          paste0("OddsRatio_", colnames(odds_ratios_df)),
-                          paste0("P_value_", colnames(p_values_df)))
+# Set column names
+colnames(results_df) <- c(paste0("Coef_", colnames(coefficients_df)),
+                          paste0("OR_", colnames(odds_ratios_df)),
+                          paste0("CIlower_", colnames(ci_lower_df)),
+                          paste0("CIupper_", colnames(ci_upper_df)),
+                          paste0("P_", colnames(p_values_df)))
 
-# Save the results to a CSV file
-write.csv(results_df, "data/multinom_justice.csv",
-          row.names = TRUE)
+results_df <- as_tibble(results_df) %>%
+  add_column(group = c("Egalitarianists", "Utilitarianists"))
+
+results_df <- results_df %>% 
+  pivot_longer(all_of(names(results_df))[1:100]) %>% 
+  separate(name, into = c("first", "rest"), sep = "_") %>%
+  pivot_wider(id_cols = c("group", "rest"), names_from = first, values_from = value)
+
+# Save to CSV
+write.csv(
+  results_df, "output/multinom_justice.csv",
+  row.names = TRUE
+)
 
 # Create a contingency table for justice_class and gender
 heatmap_data <- df_heat %>%
