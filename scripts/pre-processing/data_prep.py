@@ -43,6 +43,10 @@ df = df[df['Finished'] == True]
 # filter out quota fulls
 df = df.dropna(subset=['canton']) 
 
+# %% save to file 
+df.to_csv("raw_data/raw_conjoints_data.csv", index = False)
+
+# %%
 # speeders and laggards
 # calculate the 5% and 99% quantiles
 lower_threshold = df['duration_min'].quantile(0.05)
