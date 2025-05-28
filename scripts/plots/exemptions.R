@@ -56,6 +56,12 @@ plot_exemptions <- function(data){
            y = level,
            colour = sample,
          )) +
+    geom_vline(
+      xintercept = 0,
+      linetype = 2,
+      colour = "gray40",
+      size = .3
+    ) +
     geom_point(
       size = 2.8,
       shape = "diamond",
@@ -69,15 +75,10 @@ plot_exemptions <- function(data){
       height = .3,
       position = position_dodge(width = 0.5)
     ) +
+    # facet_wrap(~push) +
     facet_grid(
       rows = vars(sample),
       cols = vars(push)
-    )+
-    geom_vline(
-      xintercept = 0,
-      linetype = 2,
-      colour = "gray40",
-      size = .3
     ) +
     scale_color_manual(
       values = c(
@@ -103,7 +104,7 @@ plot_exemptions <- function(data){
     ggtitle("Exempted households")
 }
 
-plot_exemptions <- df_plot |>
+exemptions_plot <- df_plot |>
   filter(push != "Low stringency") |>
   plot_exemptions() +
   theme(
@@ -112,9 +113,9 @@ plot_exemptions <- df_plot |>
   )
 
 ggsave(
-  plot = plot_exemptions,
+  plot = exemptions_plot,
   here("output", "amce_exemptions_plot.png"),
-  height = 5, width = 10
+  height = 4, width = 10
 )
 
 # also make the plot for tax and ban separately
