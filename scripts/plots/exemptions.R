@@ -97,7 +97,8 @@ plot_exemptions <- function(data){
       legend.position = "right",
       text = element_text(size = 11),
       strip.background = element_rect(size = 0),
-      strip.text.x = element_text(size = 11, face = "bold")
+      strip.text.x = element_text(size = 11, face = "bold"),
+      plot.title = element_text(hjust=-0.3)
     ) +
     ggtitle("Exempted households")
 }
@@ -113,7 +114,7 @@ plot_exemptions <- df_plot |>
 ggsave(
   plot = plot_exemptions,
   here("output", "amce_exemptions_plot.png"),
-  height = 7, width = 10
+  height = 5, width = 10
 )
 
 # also make the plot for tax and ban separately
