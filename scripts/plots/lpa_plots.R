@@ -207,18 +207,11 @@ plot_participant_profiles <- function(data) {
 # create raincloud plot
 plot_raincloud <- lpa_data |>
   pivot_participant_profiles_long() |>
-  mutate(
-    justice_class_prop = case_when(
-      justice_class == "Egalitarianists" ~ paste0("Egalitarianists (", percent(justice_class_proportions$Egalitarian, accuracy = 0.1), ")"),
-      justice_class == "Universalists" ~ paste0("Universalists (", percent(justice_class_proportions$Universal, accuracy = 0.1), ")"),
-      justice_class == "Utilitarianists" ~ paste0("Utilitarianists (", percent(justice_class_proportions$Utilitarian, accuracy = 0.1), ")"),
-    )
-  ) |>
   ggplot(aes(
     x = principle,
     y = value,
-    fill = justice_class_prop,
-    colour = justice_class_prop
+    fill = justice_class,
+    colour = justice_class
   )) +
   stat_halfeye(
     alpha = .6,
@@ -241,7 +234,7 @@ plot_raincloud <- lpa_data |>
   scale_y_continuous(breaks = seq(0, 15, 1)) +
   scale_fill_viridis_d(end = .8) +
   scale_colour_viridis_d(end = .8) +
-  facet_wrap(~justice_class_prop, ncol = 1) +
+  facet_wrap(~justice_class, ncol = 1) +
   labs(
     y = "Sum score",
     x = "Justice principle",
@@ -271,11 +264,85 @@ plot_participants <- lpa_data |>
   plot_participant_profiles() +
   facet_wrap(~justice_class, ncol = 3)
 
-# check plots
-plot_raincloud
-plot_participants
+# make compound raincloud plot
+panel_a <- plot_raincloud
+
+justice_pie_data <- data.frame(
+  justice_class = names(justice_class_proportions),
+  proportion = as.numeric(justice_class_proportions)
+) |>
+  mutate(label = paste0(
+    justice_class,
+    "\n",
+    scales::percent(proportion, accuracy = 0.1)
+  ))
+
+panel_b_pie <- ggplot(
+  justice_pie_data,
+  aes(x = "", y = proportion, fill = justice_class)
+) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  scale_fill_viridis_d(end = .8, alpha = .75) +
+  theme_void() +
+  theme(
+    legend.position = "none",
+    plot.margin = margin(1, 1, 1, 1, "pt")
+  )
+
+combined_plot_pie <- panel_a +
+  inset_element(panel_b_pie, left = 0.02, bottom = 0.8, right = 0.255, top = 1.1) +
+  plot_annotation(
+    tag_levels = "A",
+    theme = theme(
+      plot.tag = element_text(size = 16)
+    )
+  )
+
+justice_bar_data <- data.frame(
+  justice_class = c("Egalitarianists", "Universalists", "Utilitarianists"),
+  count = as.numeric(table(lpa_data$justice_class))
+) |>
+  dplyr::mutate(
+    proportion = count / sum(count),
+    percent_label = scales::percent(proportion, accuracy = 0.1)
+  )
+
+panel_b <- ggplot(justice_bar_data, aes(x = justice_class, y = count, fill = justice_class)) +
+  geom_col(width = 0.6, color = "white") +
+  geom_text(
+    aes(label = percent_label),
+    vjust = -0.4,
+    size = 4.5,
+    fontface = "bold"
+  ) +
+  scale_fill_viridis_d(end = .8, alpha = 0.75) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  theme_classic() +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.position = "none",
+    plot.margin = margin(5, 5, 5, 5, "pt"),
+    text = element_text(size = main_text_size),
+  ) +
+  ylab("Number of respondents")
+
+combined_plot <- panel_a + panel_b +
+  plot_layout(
+    ncol = 2,
+    widths = c(2.5, 1)
+  )
 
 # save stuff
+ggsave(
+  here("output", "lpa_raincloud_compound.png"),
+  plot = combined_plot,
+  height = 8, width = 10
+)
+
 ggsave(
   here("output", "lpa_results.png"),
   plot = plot_lpa_results,
