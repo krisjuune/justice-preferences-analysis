@@ -6,8 +6,8 @@ library(readr)
 library(cregg)
 source("functions/r-assist.R")
 
-df_heat <- read_csv(here("data", "heat-conjoint.csv"))
-df_pv <- read_csv(here("data", "pv-conjoint.csv"))
+df_heat <- read_csv(here("data", "heat_conjoint.csv"))
+df_pv <- read_csv(here("data", "pv_conjoint.csv"))
 
 # clean
 df_heat <- filter_respondents(df_heat)
@@ -93,7 +93,7 @@ df_pv |>
 mm_heat_util_pack_rating <- cj(
   df_heat,
   rating ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -101,7 +101,7 @@ mm_heat_util_pack_rating <- cj(
 mm_heat_util_pack_choice <- cj(
   df_heat,
   Y ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -109,7 +109,7 @@ mm_heat_util_pack_choice <- cj(
 mm_pv_util_pack_rating <- cj(
   df_pv,
   rating ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -117,7 +117,7 @@ mm_pv_util_pack_rating <- cj(
 mm_pv_util_pack_choice <- cj(
   df_pv,
   Y ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -125,28 +125,28 @@ mm_pv_util_pack_choice <- cj(
 mm_heat_util_pack_rating_gen <- cj(
   df_heat,
   rating ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
 mm_heat_util_pack_choice_gen <- cj(
   df_heat,
   Y ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
 mm_pv_util_pack_rating_gen <- cj(
   df_pv,
   rating ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
 mm_pv_util_pack_choice_gen <- cj(
   df_pv,
   Y ~ util_pack,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
@@ -201,5 +201,5 @@ mm_util_pack_combined_gen <- bind_rows(
   mm_pv_util_pack_rating_gen
 )
 
-write_csv(mm_util_pack_combined, here("data", "mm_util_packages.csv"))
-write_csv(mm_util_pack_combined_gen, here("data", "mm_util_packages_.csv"))
+write_csv(mm_util_pack_combined, here("data", "mm_instrument.csv"))
+write_csv(mm_util_pack_combined_gen, here("data", "mm_instrument_overall.csv"))
