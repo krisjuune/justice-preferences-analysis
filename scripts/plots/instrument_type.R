@@ -67,6 +67,12 @@ plot_features_per_class <- function(data){
            colour = sample,
            shape = experiment
          )) +
+    geom_vline(
+      xintercept = .5,
+      linetype = 2,
+      colour = "gray40",
+      size = .3
+    ) +
     geom_point(
       aes(size = experiment),
       position = position_dodge(width = 0.5)
@@ -82,12 +88,6 @@ plot_features_per_class <- function(data){
     facet_wrap(
       vars(sample),
       ncol = 4
-    ) +
-    geom_vline(
-      xintercept = .5,
-      linetype = 2,
-      colour = "gray40",
-      size = .3
     ) +
     scale_color_manual(
       values = c(
@@ -132,5 +132,5 @@ util_plot <- df_util |>
 ggsave(
   plot = util_plot,
   here("output", "mm_dist_design.png"),
-  height = 3, width = 10
+  height = 2.5, width = 10
 )

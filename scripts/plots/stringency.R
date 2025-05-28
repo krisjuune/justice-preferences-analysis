@@ -55,5 +55,5 @@ push_plot <- df_push |>
 ggsave(
   plot = push_plot,
   here("output", "mm_stringency.png"),
-  height = 4, width = 10
+  height = 3, width = 10
 )
