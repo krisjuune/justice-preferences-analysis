@@ -78,7 +78,7 @@ df_pv <- df_pv |>
 mm_heat_push_rating <- cj(
   df_heat,
   rating ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -86,7 +86,7 @@ mm_heat_push_rating <- cj(
 mm_heat_push_choice <- cj(
   df_heat,
   Y ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -94,7 +94,7 @@ mm_heat_push_choice <- cj(
 mm_pv_push_rating <- cj(
   df_pv,
   rating ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -102,7 +102,7 @@ mm_pv_push_rating <- cj(
 mm_pv_push_choice <- cj(
   df_pv,
   Y ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm",
   by = ~justice_class
 )
@@ -110,28 +110,28 @@ mm_pv_push_choice <- cj(
 mm_heat_push_rating_gen <- cj(
   df_heat,
   rating ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
 mm_heat_push_choice_gen <- cj(
   df_heat,
   Y ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
 mm_pv_push_rating_gen <- cj(
   df_pv,
   rating ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
 mm_pv_push_choice_gen <- cj(
   df_pv,
   Y ~ push,
-  id = ~ID,
+  id = ~id,
   estimate = "mm"
 )
 
