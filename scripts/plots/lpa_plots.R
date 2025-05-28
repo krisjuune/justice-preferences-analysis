@@ -179,7 +179,7 @@ plot_participant_profiles <- function(data) {
   plot <- ggplot(data, aes(
     x = principle,
     y = value,
-    group = ID,
+    group = id,
     color = justice_class
   )) +
     geom_line(alpha = 0.4, size = 0.5) +
