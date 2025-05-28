@@ -65,11 +65,10 @@ plot_features_per_class <- function(data){
            x = estimate,
            y = level,
            colour = sample,
-           fill = sample,
            shape = experiment
          )) +
     geom_point(
-      size = 2,
+      aes(size = experiment),
       position = position_dodge(width = 0.5)
     ) +
     geom_errorbarh(
@@ -99,19 +98,17 @@ plot_features_per_class <- function(data){
       ),
       guide = "none"
     ) +
-    scale_fill_manual(
-      values = c(
-        "Egalitarianists (39.3%)" = viridis::viridis(3, end = .8)[1],
-        "Universalists (50.9%)" = viridis::viridis(3, end = .8)[2],
-        "Utilitarianists (9.8%)" = viridis::viridis(3, end = .8)[3],
-        "Overall" = "gray50"
-      ),
-      guide = "none"
-    ) +
     scale_shape_manual(
       values = c(
-        "Renewable energy" = 21,
-        "Heating sector" = 23
+        "Renewable energy" = "circle",
+        "Heating sector" = "diamond"
+      ),
+      name = "Experiment"
+    )  +
+    scale_size_manual(
+      values = c(
+        "Renewable energy" = 2,
+        "Heating sector"   = 2.8
       ),
       name = "Experiment"
     ) +
