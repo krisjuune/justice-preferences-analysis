@@ -6,7 +6,7 @@ library(patchwork)
 library(here)
 
 df_plot <- read_csv(here("data", "mm_exemptions.csv")) |>
-  filter(outcome == "choice")
+  filter(outcome == "choice", !is.na(justice_class))
 
 main_text_size <- 10
 
@@ -37,7 +37,7 @@ df_plot <- df_plot |>
     justice_class = factor(
       justice_class,
       levels = c(
-        "egalitarian", "universal", "utilitarian"
+        "Egalitarianists", "Universalists", "Utilitarianists"
       ),
       labels = c(
         "Egalitarianists", "Universalists", "Utilitarianists"
@@ -68,7 +68,7 @@ plot_exemptions <- function(data) {
       alpha = exemption
     )) +
     geom_point(
-      size = 2,
+      aes(size = justice_class),
       position = position_dodge(width = 0.5)
     ) +
     geom_errorbarh(
@@ -88,7 +88,9 @@ plot_exemptions <- function(data) {
       colour = "gray40",
       linewidth = .3
     ) +
-    scale_color_viridis_d(end = .8) +
+    scale_color_viridis_d(
+      end = .8,
+      guide = "none") +
     scale_alpha_manual(values = c(.5, 1, 1)) +
     labs(
       colour = NULL,
@@ -97,7 +99,14 @@ plot_exemptions <- function(data) {
       y = NULL,
       x = "Marginal means"
     ) +
-    guides(color = "none")
+    scale_size_manual(
+      values = c(
+        "Egalitarianists" = 1.85,
+        "Universalists" = 2.2,
+        "Utilitarianists" = 0.85
+      ),
+      guide = "none"
+    )
 }
 
 exemption_ban_plot <- df_plot |>
@@ -107,18 +116,6 @@ exemption_ban_plot <- df_plot |>
 exemption_tax_plot <- df_plot |>
   filter(feature == "Tax") |>
   plot_exemptions()
-
-theme_patchwork_justice <- function(plot) {
-  plot +
-  scale_x_continuous(limits = c(.25, .75)) +
-  theme_classic() +
-  theme(
-    legend.position = "right",
-    text = element_text(size = main_text_size),
-    strip.background = element_rect(size = 0),
-    strip.text.x = element_text(size = main_text_size, face = "bold")
-  )
-}
 
 mm_exemptions_plot <- (exemption_ban_plot / exemption_tax_plot) +
   plot_layout(guides = "collect", axis_titles = "collect") +

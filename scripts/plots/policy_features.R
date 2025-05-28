@@ -97,7 +97,7 @@ plot_policy_features <- function(data){
            colour = justice_class
          )) +
     geom_point(
-      size = 2,
+      aes(size = justice_class),
       position = position_dodge(width = 0.5)
     ) +
     geom_errorbarh(
@@ -117,7 +117,27 @@ plot_policy_features <- function(data){
       colour = "gray40",
       size = .3
     ) +
-    scale_color_viridis_d(end = .8) +
+    scale_color_viridis_d(
+      end = .8,
+      labels = c(
+        "Egalitarianists (39.3%)",
+        "Universalists (50.9%)",
+        "Utilitarianists (9.8%)"
+      ),
+    ) +
+    scale_size_manual(
+      values = c(
+        "Egalitarianists" = 1.85,
+        "Universalists" = 2.2,
+        "Utilitarianists" = 0.85
+      ),
+      labels = c(
+        "Egalitarianists (39.3%)",
+        "Universalists (50.9%)",
+        "Utilitarianists (9.8%)"
+      ),
+      guide = guide_legend(title = NULL)
+    ) +
     labs(
       colour = NULL,
       shape = NULL,
@@ -171,9 +191,9 @@ plot_features_per_class <- function(data){
     ) +
     scale_size_manual(
       values = c(
-        "Egalitarianists" = 2.5,
-        "Universalists" = 3,
-        "Utilitarianists" = 1
+        "Egalitarianists" = 1.85,
+        "Universalists" = 2.2,
+        "Utilitarianists" = 0.85
       ),
       labels = c(
         "Egalitarianists (39.3%)",
@@ -223,7 +243,7 @@ util_plot <- util_plot1 / util_plot2 +
 ggsave(
   plot = push_plot,
   here("output", "mm_stringency.png"),
-  height = 4, width = 10
+  height = 3, width = 10
 )
 
 ggsave(
