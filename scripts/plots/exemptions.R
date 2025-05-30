@@ -91,7 +91,7 @@ plot_exemptions <- function(data){
     ) +
     labs(
       y = NULL,
-      x = "Marginal means"
+      x = "Average marginal component effects"
     ) +
     theme_classic() +
     theme(

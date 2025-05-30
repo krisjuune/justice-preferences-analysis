@@ -334,6 +334,9 @@ combined_plot <- panel_a + panel_b +
   plot_layout(
     ncol = 2,
     widths = c(2.5, 1)
+  ) +
+  plot_annotation(
+    tag_levels = "A"
   )
 
 # save stuff
