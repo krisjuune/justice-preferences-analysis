@@ -4,6 +4,7 @@ library(tidyr)
 library(readr)
 library(patchwork)
 library(here)
+source(here("functions", "r-assist.R"))
 
 df_util_just <- read_csv(
   here("data", "mm_instrument.csv"),
@@ -50,7 +51,7 @@ df_util <- bind_rows(
         "Egalitarianists (39.3%)",
         "Universalists (50.9%)",
         "Utilitarianists (9.8%)",
-        "Overall"
+        "Overall sample"
       )
     )
   ) |>
@@ -90,12 +91,7 @@ plot_features_per_class <- function(data){
       ncol = 4
     ) +
     scale_color_manual(
-      values = c(
-        "Egalitarianists (39.3%)" = viridis::viridis(3, end = .8)[1],
-        "Universalists (50.9%)" = viridis::viridis(3, end = .8)[2],
-        "Utilitarianists (9.8%)" = viridis::viridis(3, end = .8)[3],
-        "Overall" = "gray50"
-      ),
+      values = my_palette(4, named = TRUE),
       guide = "none"
     ) +
     scale_shape_manual(

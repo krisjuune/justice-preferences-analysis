@@ -5,22 +5,33 @@ library(marginaleffects)
 library(ggplot2)
 library(gridExtra)
 
-filter_respondents <- function(df, 
-                               filter_speeders = TRUE, 
-                               filter_laggards = TRUE, 
+my_palette <- function(n, named = FALSE) {
+  colors_named <- c(
+    "Egalitarianists (39.3%)" = "#c6461f",
+    "Universalists (50.9%)"   = "#007b97",
+    "Utilitarianists (9.8%)"  = "#f59a00",
+    "Overall"                 = "gray50"
+  )
+
+  selected <- if (n == 3) colors_named[1:3] else if (n == 4) colors_named else stop("This palette supports only 3 or 4 colors.")
+
+  if (named) return(selected) else return(unname(selected))
+}
+
+filter_respondents <- function(df,
+                               filter_speeders = TRUE,
+                               filter_laggards = TRUE,
                                filter_inattentives = TRUE) {
   # get initial nr of respondents
   initial_unique_ids <- df %>% pull(id) %>% unique() %>% length()
-  
-  # convert the columns to logical type
+
   df <- df %>%
     mutate(
       speeder = as.logical(speeder),
       laggard = as.logical(laggard),
       inattentive = as.logical(inattentive)
     )
-  
-  # apply filtering as requested
+
   if (filter_speeders) {
     df <- df %>% filter(!speeder)
   }
@@ -30,12 +41,15 @@ filter_respondents <- function(df,
   if (filter_inattentives) {
     df <- df %>% filter(!inattentive)
   }
-  
-  # get number of respondents filtered out
+
   final_unique_ids <- df %>% pull(id) %>% unique() %>% length()
   filtered_out_count <- initial_unique_ids - final_unique_ids
-  cat("Number of unique respondents (ids) filtered out:", filtered_out_count, "\n")
-  
+  cat(
+    "Number of unique respondents (ids) filtered out:",
+    filtered_out_count,
+    "\n"
+  )
+
   return(df)
 }
 

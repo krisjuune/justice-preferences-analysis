@@ -6,6 +6,7 @@ library(patchwork)
 library(here)
 
 source(here("scripts", "plots", "instrument_type.R"))
+source(here("functions", "r-assist.R"))
 
 df_push_just <- read_csv(
   here("data", "mm_stringency.csv"),
@@ -43,7 +44,7 @@ df_push <- bind_rows(
         "Egalitarianists (39.3%)",
         "Universalists (50.9%)",
         "Utilitarianists (9.8%)",
-        "Overall"
+        "Overall sample"
       )
     )
   )

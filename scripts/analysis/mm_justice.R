@@ -49,7 +49,7 @@ plot_heat <- plot(
 ) +
   geom_vline(xintercept = 0.5, color = "grey50", alpha = 0.8) +
   xlim(0.3, 0.7) +
-  scale_color_viridis_d(end = .8, na.translate = FALSE) +
+  scale_color_manual(values = my_palette(3), na.translate = FALSE) +
   theme_classic() +
   theme(legend.title = element_blank()) +
   ggtitle("Heating sector decarbonisation")
@@ -60,7 +60,7 @@ plot_pv <- plot(
 ) +
   geom_vline(xintercept = 0.5, color = "grey50", alpha = 0.8) +
   xlim(0.3, 0.7) +
-  scale_color_viridis_d(end = .8, na.translate = FALSE) +
+  scale_color_manual(values = my_palette(3), na.translate = FALSE)  +
   theme_classic() +
   theme(legend.title = element_blank()) +
   ggtitle("Renewable energy scale-up")

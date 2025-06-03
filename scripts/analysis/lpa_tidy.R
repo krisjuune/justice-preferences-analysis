@@ -108,9 +108,9 @@ lpa_elbow_plot <- ggplot(fit_stats_long,
     text = element_text(size = 12),
     legend.title = element_blank()
   ) +
-  scale_color_viridis_d(end = .85) +
+  scale_color_grey(end = .85) +
   scale_shape_manual(values = 21:25) +
-  scale_fill_viridis_d(end = .85)
+  scale_fill_grey(end = .85)
 
 # save fit stats stuff
 write.csv(

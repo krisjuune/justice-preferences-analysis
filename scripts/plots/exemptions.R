@@ -4,6 +4,7 @@ library(tidyr)
 library(readr)
 library(patchwork)
 library(here)
+source(here("functions", "r-assist.R"))
 
 df_plot <- read_csv(here("data", "amce_exemptions.csv")) |>
   filter(outcome == "choice")
@@ -31,7 +32,7 @@ df_plot <- df_plot |>
         "Egalitarianists (39.3%)",
         "Universalists (50.9%)",
         "Utilitarianists (9.8%)",
-        "Overall"
+        "Overall sample"
       )
     ),
     level = factor(
@@ -81,12 +82,7 @@ plot_exemptions <- function(data){
       cols = vars(push)
     ) +
     scale_color_manual(
-      values = c(
-        "Egalitarianists (39.3%)" = viridis::viridis(3, end = .8)[1],
-        "Universalists (50.9%)" = viridis::viridis(3, end = .8)[2],
-        "Utilitarianists (9.8%)" = viridis::viridis(3, end = .8)[3],
-        "Overall" = "gray50"
-      ),
+      values = my_palette(4),
       name = "Justice orientation"
     ) +
     labs(
@@ -149,7 +145,9 @@ df_plot_tax_ban <- df_plot_tax_ban |>
         "Egalitarianists", "Universalists", "Utilitarianists"
       ),
       labels = c(
-        "Egalitarianists", "Universalists", "Utilitarianists"
+        "Egalitarianists (39.3%)",
+        "Universalists (50.9%)",
+        "Utilitarianists (9.8%)"
       )
     ),
     exemption = factor(
@@ -197,9 +195,10 @@ plot_exemptions_policy <- function(data) {
       colour = "gray40",
       linewidth = .3
     ) +
-    scale_color_viridis_d(
-      end = .8,
-      guide = "none") +
+    scale_color_manual(
+      values = my_palette(3, named = TRUE),
+      name = "Justice orientation"
+    ) +
     scale_alpha_manual(values = c(.5, 1, 1)) +
     labs(
       colour = NULL,

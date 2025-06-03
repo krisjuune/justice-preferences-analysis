@@ -12,6 +12,23 @@ source(here("functions", "r-assist.R"))
 source(here("scripts", "plots", "lpa_plots.R"))
 source(here("scripts", "plots", "exemptions.R"))
 
+my_palette_g4 <- function(n, named = FALSE) {
+  colors_vec <- c(
+    "#c6461f",
+    "#d6775d",
+    "#007b97",
+    "#f59a00"
+  )
+
+  if (n == 3) {
+    return(colors_vec[1:3])
+  } else if (n == 4) {
+    return(colors_vec)
+  } else {
+    stop("This palette supports only 3 or 4 colors.")
+  }
+}
+
 set.seed(100)
 main_text_size <- 10
 
@@ -69,10 +86,6 @@ plot_participant_profiles <- function(data, show_legend = FALSE) {
       color = NULL
     ) +
     theme_classic() +
-    scale_color_viridis_d(
-      end = .8,
-      guide = guide_legend(override.aes = list(alpha = 1))
-    ) +
     theme(
       legend.position = if (show_legend) "right" else "none",
       text = element_text(size = main_text_size),
@@ -88,6 +101,7 @@ plot_3class <- data_g3 |>
   slice_sample(n = 50) |>
   pivot_participant_profiles_long(shorten_labels = TRUE, get_z = FALSE) |>
   plot_participant_profiles(show_legend = TRUE) +
+  scale_color_manual(values = my_palette(3)) +
   facet_wrap(~sub("^(\\d+).*", "\\1", justice_class), ncol = 3) +
   xlab(NULL) +
   ggtitle("3-group solution")
@@ -97,6 +111,7 @@ plot_4class <- data_g4 |>
   slice_sample(n = 50) |>
   pivot_participant_profiles_long(shorten_labels = TRUE, get_z = FALSE) |>
   plot_participant_profiles(show_legend = TRUE) +
+  scale_color_manual(values = my_palette_g4(4)) +
   facet_wrap(~sub("^(\\d+).*", "\\1", justice_class), ncol = 4) +
   ggtitle("4-group solution")
 
@@ -172,11 +187,13 @@ mm_exemptions_g4 <- cj(
 )
 
 plot_ban_g3 <- mm_exemptions_g3 |>
-  plot_exemptions() +
+  plot_exemptions_policy() +
+  scale_color_manual(values = my_palette(3), guide = "none") +
   ggtitle("3-group solution")
 
 plot_ban_g4 <- mm_exemptions_g4 |>
-  plot_exemptions() +
+  plot_exemptions_policy() +
+  scale_color_manual(values = my_palette_g4(4), guide = "none") +
   ggtitle("4-group solution")
 
 exemptions_plot <- (plot_ban_g3 / plot_ban_g4) +
