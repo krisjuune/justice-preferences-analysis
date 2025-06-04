@@ -24,9 +24,9 @@ lpa_data <- read_csv(
         "1", "3", "2"
       ),
       labels = c(
-        "Egalitarianists",
+        "Egalitarians",
         "Universalists",
-        "Utilitarianists"
+        "Utilitarians"
       )
     )
   )
@@ -56,9 +56,9 @@ pivot_participant_profiles_long <- function(
   get_z = FALSE
 ) {
   labels_long <- c(
-    "Utilitarian",
-    "Sufficientarian",
-    "Limitarian",
+    "Unconstrained outcomes",
+    "Sufficiency limit",
+    "Upper limit",
     "Equal outcomes"
   )
 
@@ -158,7 +158,7 @@ plot_raincloud <- lpa_data |>
   facet_wrap(~justice_class, ncol = 1) +
   labs(
     y = "Sum score",
-    x = "Justice principle",
+    x = NULL,
     colour = NULL,
     fill = NULL
   ) +
@@ -167,21 +167,10 @@ plot_raincloud <- lpa_data |>
     legend.position = "none",
     text = element_text(size = main_text_size),
     strip.background = element_rect(size = 0),
-    strip.text.x = element_text(size = main_text_size, face = "bold")
-  )
-
-
-
-# get plots
-plot_participants <- lpa_data |>
-  group_by(justice_class) |>
-  slice_sample(n = 50) |>
-  pivot_participant_profiles_long(
-    shorten_labels = TRUE,
-    get_z = TRUE
-  ) |>
-  plot_participant_profiles() +
-  facet_wrap(~justice_class, ncol = 3)
+    strip.text.x = element_text(size = main_text_size, face = "bold"),
+    plot.title = element_text(hjust = -0.22, size = main_text_size)
+  ) +
+  ggtitle("Justice principle")
 
 # make compound raincloud plot
 panel_a <- plot_raincloud
@@ -244,14 +233,15 @@ panel_b <- ggplot(justice_bar_data, aes(x = justice_class, y = count, fill = jus
   theme_classic() +
   theme(
     axis.title.x = element_blank(),
-    axis.title.y = element_text(size = 12),
+    axis.title.y = element_blank(),
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank(),
     legend.position = "none",
     plot.margin = margin(5, 5, 5, 5, "pt"),
     text = element_text(size = main_text_size),
+    plot.title = element_text(size = main_text_size)
   ) +
-  ylab("Number of respondents")
+  ggtitle("Number of respondents")
 
 combined_plot <- panel_a + panel_b +
   plot_layout(
@@ -261,6 +251,18 @@ combined_plot <- panel_a + panel_b +
   plot_annotation(
     tag_levels = "A"
   )
+
+# get plots
+plot_participants <- lpa_data |>
+  group_by(justice_class) |>
+  slice_sample(n = 50) |>
+  pivot_participant_profiles_long(
+    shorten_labels = TRUE,
+    get_z = TRUE
+  ) |>
+  plot_participant_profiles() +
+  facet_wrap(~justice_class, ncol = 3)
+
 
 # save stuff
 ggsave(
