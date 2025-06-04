@@ -44,7 +44,7 @@ data_g3 <- read_csv(
         "1", "3", "2"
       ),
       labels = c(
-        "1 (Egalitarianists, 39%)", "2 (Universalists, 51%)", "3 (Utilitarianists, 10%)"
+        "1 (Egalitarians, 39%)", "2 (Universalists, 51%)", "3 (Utilitarians, 10%)"
       )
     )
   )
@@ -61,7 +61,7 @@ data_g4 <- read_csv(
         "2", "1", "4", "3"
       ),
       labels = c(
-        "1 (Egalitarianists type A, 11%)", "2 (Egalitarinists type B, 28%)", "3 (Universalists, 51%)", "4 (Utilitarianists, 10%)"
+        "1 (Egalitarians type A, 11%)", "2 (Egalitarians type B, 28%)", "3 (Universalists, 51%)", "4 (Utilitarians, 10%)"
       )
     )
   )
@@ -138,9 +138,9 @@ df_heat <- read_csv(
         "1", "3", "2"
       ),
       labels = c(
-        "1 (Egalitarianists, 39%)",
+        "1 (Egalitarians, 39%)",
         "2 (Universalists, 51%)",
-        "3 (Utilitarianists, 10%)"
+        "3 (Utilitarians, 10%)"
       )
     )
   )
@@ -159,10 +159,10 @@ df_heat_g4 <- read_csv(
       temp_justice_class,
       levels = c("2", "1", "4", "3"),
       labels = c(
-        "1 (Egalitarianists type A, 11%)",
-        "2 (Egalitarianists type B, 28%)",
+        "1 (Egalitarians type A, 11%)",
+        "2 (Egalitarians type B, 28%)",
         "3 (Universalists, 51%)",
-        "4 (Utilitarianists, 10%)"
+        "4 (Utilitarians, 10%)"
       )
     )
   )

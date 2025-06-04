@@ -7,10 +7,10 @@ library(gridExtra)
 
 my_palette <- function(n, named = FALSE) {
   colors_named <- c(
-    "Egalitarianists (39.3%)" = "#c6461f",
-    "Universalists (50.9%)"   = "#007b97",
-    "Utilitarianists (9.8%)"  = "#f59a00",
-    "Overall"                 = "gray50"
+    "Egalitarians (39.3%)" = "#c6461f",
+    "Universalists (50.9%)" = "#007b97",
+    "Utilitarians (9.8%)" = "#f59a00",
+    "Overall sample" = "gray50"
   )
 
   selected <- if (n == 3) colors_named[1:3] else if (n == 4) colors_named else stop("This palette supports only 3 or 4 colors.")
@@ -88,7 +88,7 @@ factor_conjoint <- function(df, experiment) {
             "1", "3", "2"
           ),
           labels = c(
-            "Egalitarianists", "Universalists", "Utilitarianists"
+            "Egalitarians", "Universalists", "Utilitarians"
           )
         )
       )

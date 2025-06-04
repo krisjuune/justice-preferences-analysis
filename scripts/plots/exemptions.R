@@ -29,9 +29,9 @@ df_plot <- df_plot |>
       sample,
       levels = c("Egalitarianists", "Universalists", "Utilitarianists", "Overall"),
       labels = c(
-        "Egalitarianists (39.3%)",
+        "Egalitarians (39.3%)",
         "Universalists (50.9%)",
-        "Utilitarianists (9.8%)",
+        "Utilitarians (9.8%)",
         "Overall sample"
       )
     ),
@@ -92,10 +92,10 @@ plot_exemptions <- function(data){
     theme_classic() +
     theme(
       legend.position = "right",
-      text = element_text(size = 11),
+      text = element_text(size = main_text_size),
       strip.background = element_rect(size = 0),
-      strip.text.x = element_text(size = 11, face = "bold"),
-      plot.title = element_text(hjust=-0.3)
+      strip.text.x = element_text(size = main_text_size, face = "bold"),
+      plot.title = element_text(hjust = -0.23, size = main_text_size)
     ) +
     ggtitle("Exempted households")
 }

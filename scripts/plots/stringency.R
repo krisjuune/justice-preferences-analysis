@@ -41,9 +41,9 @@ df_push <- bind_rows(
       sample,
       levels = c("Egalitarianists", "Universalists", "Utilitarianists", "Overall"),
       labels = c(
-        "Egalitarianists (39.3%)",
+        "Egalitarians (39.3%)",
         "Universalists (50.9%)",
-        "Utilitarianists (9.8%)",
+        "Utilitarians (9.8%)",
         "Overall sample"
       )
     )
